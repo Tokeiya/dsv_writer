@@ -146,6 +146,13 @@ mod tests {
 		}
 	}
 
+	pub fn with_dbg(actual: &[u8], expected: &str) -> bool {
+		let a = String::from_utf8_lossy(actual);
+		println!("actual:{} expected:{}", &a, expected);
+		println!("esc_actual:{:?} esc_expected:{:?}", &a, expected);
+		a == expected
+	}
+
 	pub const CSV_ESCAPE_CHARS: &[char] = &['"', '\n', '\r', ','];
 	pub const TSV_ESCAPE_CHARS: &[char] = &['"', '\n', '\r', '\t'];
 	#[test]
@@ -232,13 +239,21 @@ mod tests {
 	#[test]
 	fn write_str_field_test() {
 		let mut mock = MockWriter::new();
+		let mut seq = mockall::Sequence::new();
+
 		mock.expect_write()
-			.with(predicate::function(|x: &[u8]| {
-				dbg!(String::from_utf8_lossy(x));
-				x.eq(b"hello,world,\"quoted\",\"\"\"\",\r\n")
-			}))
+			.once()
+			.withf(|x| with_dbg(x, "hello,world,\"quoted\",\"\"\"\""))
 			.returning(|x| Ok(x.len()))
-			.times(1);
+			.in_sequence(&mut seq);
+
+		mock.expect_write()
+			.once()
+			.withf(|x| with_dbg(x, "\r\n"))
+			.in_sequence(&mut seq)
+			.returning(|x| Ok(x.len()));
+
+		mock.expect_flush().once().returning(|| Ok(()));
 
 		let mut fixture = PrimitiveWriter::<MockWriter, ','>::new(mock);
 		let a = fixture.write_str_field(Cow::Borrowed("hello"), QuoteMode::AutoDetect);
@@ -253,8 +268,6 @@ mod tests {
 		let a = fixture.write_str_field(Cow::Borrowed("\""), QuoteMode::Quoted);
 		assert_eq!(a, 4);
 
-		dbg!(&fixture.buffer);
-
 		let n = fixture.end_of_record(true).unwrap();
 		assert_eq!(n, 4);
 	}
@@ -262,12 +275,23 @@ mod tests {
 	#[test]
 	fn write_value_field_test() {
 		let mut mock = MockWriter::new();
+		let mut seq = mockall::Sequence::new();
+
 		mock.expect_write()
-			.with(predicate::function(|x: &[u8]| {
-				x.eq("123,45.67,\"true\",\"\"\"text\"\"\"\r\n".as_bytes())
-			}))
+			.withf(|x| with_dbg(x, "123,45.67,\"true\",\"\"\"text\"\"\""))
 			.returning(|x| Ok(x.len()))
-			.times(1);
+			.once()
+			.in_sequence(&mut seq);
+
+		mock.expect_write()
+			.withf(|x| with_dbg(x, "\r\n"))
+			.returning(|x| Ok(x.len()))
+			.once()
+			.in_sequence(&mut seq);
+
+		mock.expect_flush()
+			.returning(|| Ok(()))
+			.in_sequence(&mut seq);
 
 		let mut fixture = PrimitiveWriter::<MockWriter, ','>::new(mock);
 		let a = fixture.write_value_field(&123, QuoteMode::AutoDetect);
@@ -289,48 +313,33 @@ mod tests {
 	#[test]
 	fn end_of_record_test() {
 		let mut mock = MockWriter::new();
+		let mut seq = mockall::Sequence::new();
+
 		mock.expect_write()
-			.with(predicate::function(|x: &[u8]| x.eq("\r\n".as_bytes())))
+			.withf(|x| with_dbg(x, "\r\n"))
+			.once()
 			.returning(|x| Ok(x.len()))
-			.times(1);
+			.in_sequence(&mut seq);
 
-		mock.expect_flush().times(0);
-
-		let mut fixture = PrimitiveWriter::<MockWriter, ','>::new(mock);
-		let n = fixture.end_of_record(false).unwrap();
-		assert_eq!(n, 0);
-
-		let mut mock = MockWriter::new();
-		mock.expect_write()
-			.with(predicate::function(|x: &[u8]| x.eq("\r\n".as_bytes())))
-			.returning(|x| Ok(x.len()))
-			.times(1);
-
-		mock.expect_flush().times(1);
+		mock.expect_flush()
+			.returning(|| Ok(()))
+			.in_sequence(&mut seq);
 
 		let mut fixture = PrimitiveWriter::<MockWriter, ','>::new(mock);
 		let n = fixture.end_of_record(true).unwrap();
 		assert_eq!(n, 0);
-	}
 
-	#[test]
-	fn foo() {
 		let mut mock = MockWriter::new();
 		let mut seq = mockall::Sequence::new();
 
 		mock.expect_write()
+			.withf(|x| with_dbg(x, "\r\n"))
 			.once()
-			.in_sequence(&mut seq)
-			.with(predicate::eq(b"hello" as &[u8]))
-			.returning(|x| Ok(x.len()));
+			.returning(|x| Ok(x.len()))
+			.in_sequence(&mut seq);
 
-		mock.expect_write()
-			.once()
-			.in_sequence(&mut seq)
-			.with(predicate::eq(b"\r\n" as &[u8]))
-			.returning(move |x| Ok(x.len()));
-
-		mock.write_all(b"hello").unwrap();
-		//mock.write_all(b"\r\n").unwrap();
+		let mut fixture = PrimitiveWriter::<MockWriter, ','>::new(mock);
+		let n = fixture.end_of_record(false).unwrap();
+		assert_eq!(n, 0);
 	}
 }
