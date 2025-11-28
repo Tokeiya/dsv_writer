@@ -1,20 +1,21 @@
 use crate::field_description::Description;
 use crate::field_descriptor::Descriptor as FieldDescriptor;
 
-pub struct Descriptor<'a, T>(Vec<FieldDescriptor<'a, T>>);
+pub struct Descriptor<T>(Vec<FieldDescriptor<T>>);
 
-impl<'a, T> Default for Descriptor<'a, T> {
+impl<T> Default for Descriptor<T> {
 	fn default() -> Self {
-		todo!()
+		Self(Vec::new())
 	}
 }
 
-impl<'a, T> Descriptor<'a, T> {
-	pub fn push<F: Fn(&T) -> Description<'_> + 'a>(&mut self, f: F) -> usize {
-		todo!()
+impl<T> Descriptor<T> {
+	pub fn push<F: Fn(&T) -> Description<'_>>(&mut self, f: F) -> usize {
+		self.0.push(FieldDescriptor::from(f));
+		self.0.len()
 	}
 
-	pub fn delete(idx: usize) -> Description<'a> {
+	pub fn delete(&mut self, idx: usize) {
 		todo!()
 	}
 
