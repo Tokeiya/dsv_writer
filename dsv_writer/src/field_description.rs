@@ -1,12 +1,13 @@
 use crate::primitive_writer::QuoteMode;
 use std::borrow::Cow;
 
-pub struct Descriptor<'a> {
+#[derive(Debug)]
+pub struct Description<'a> {
 	value: Cow<'a, str>,
 	quoted_mode: QuoteMode,
 }
 
-impl<'a> Descriptor<'a> {
+impl<'a> Description<'a> {
 	pub fn new(value: Cow<'a, str>, quoted_mode: QuoteMode) -> Self {
 		Self { value, quoted_mode }
 	}
