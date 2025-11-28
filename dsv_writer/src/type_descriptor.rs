@@ -1,15 +1,15 @@
 use crate::field_description::Description;
-use crate::field_descriptor::FieldDescriptor;
+use crate::field_descriptor::Descriptor as FieldDescriptor;
 
-pub struct TypeDescriptor<'a, T>(Vec<FieldDescriptor<'a, T>>);
+pub struct Descriptor<'a, T>(Vec<FieldDescriptor<'a, T>>);
 
-impl<'a, T> Default for TypeDescriptor<'a, T> {
+impl<'a, T> Default for Descriptor<'a, T> {
 	fn default() -> Self {
 		todo!()
 	}
 }
 
-impl<'a, T> TypeDescriptor<'a, T> {
+impl<'a, T> Descriptor<'a, T> {
 	pub fn push<F: Fn(&T) -> Description<'_> + 'a>(&mut self, f: F) -> usize {
 		todo!()
 	}
