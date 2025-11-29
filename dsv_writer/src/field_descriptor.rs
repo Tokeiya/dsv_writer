@@ -28,14 +28,14 @@ mod test {
 
 	#[test]
 	fn test_descriptor() {
-		let d = Descriptor::from(|s: &Sample| Description::new_str(s.0, QuoteMode::Quoted));
+		let d = Descriptor::from(|s: &Sample| Description::from_str(s.0, QuoteMode::Quoted));
 		let actual = d.describe(&Sample("hello"));
 
 		assert_eq!(actual.value(), "hello");
 		assert!(matches!(actual.quoted_mode(), QuoteMode::Quoted));
 
 		let d = Descriptor::from(|s: &Sample| {
-			Description::new_string(s.0.to_string(), QuoteMode::AutoDetect)
+			Description::from_string(s.0.to_string(), QuoteMode::AutoDetect)
 		});
 
 		let actual = d.describe(&Sample("hello"));

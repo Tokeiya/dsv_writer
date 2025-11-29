@@ -65,7 +65,7 @@ mod tests {
 	fn push_test() {
 		let mut fixture = Descriptor::<Sample>::default();
 		fixture
-			.push(|x| Description::new_str(x.str, crate::primitive_writer::QuoteMode::AutoDetect));
+			.push(|x| Description::from_str(x.str, crate::primitive_writer::QuoteMode::AutoDetect));
 
 		let sample = Sample::gen_sample();
 
@@ -77,7 +77,7 @@ mod tests {
 			crate::primitive_writer::QuoteMode::AutoDetect
 		));
 
-		fixture.push(|x| Description::new_string(x.int.to_string(), QuoteMode::AutoDetect));
+		fixture.push(|x| Description::from_string(x.int.to_string(), QuoteMode::AutoDetect));
 		let actual = fixture.describe(&sample);
 		assert_eq!(actual.len(), 2);
 		assert_eq!(actual[1].value(), "42");
@@ -92,17 +92,17 @@ mod tests {
 		let actual = fixture.describe(&sample);
 		assert_eq!(actual.len(), 0);
 
-		fixture.push(|x| Description::new_str(x.str, AutoDetect));
+		fixture.push(|x| Description::from_str(x.str, AutoDetect));
 		let actual = fixture.describe(&sample);
 		assert_eq!(actual.len(), 1);
 		assert_eq!(actual[0].value(), "ref str");
 
-		fixture.push(|x| Description::new_string(x.int.to_string(), AutoDetect));
+		fixture.push(|x| Description::from_string(x.int.to_string(), AutoDetect));
 		let actual = fixture.describe(&sample);
 		assert_eq!(actual.len(), 2);
 		assert_eq!(actual[1].value(), "42");
 
-		fixture.push(|x| Description::new_string(x.string.clone(), AutoDetect));
+		fixture.push(|x| Description::from_string(x.string.clone(), AutoDetect));
 		let actual = fixture.describe(&sample);
 		assert_eq!(actual.len(), 3);
 		assert_eq!(actual[2].value(), "hello");
@@ -118,14 +118,14 @@ mod tests {
 		assert_eq!(n, 0);
 		assert_eq!(buff.len(), 0);
 
-		fixture.push(|x| Description::new_str(x.str, AutoDetect));
+		fixture.push(|x| Description::from_str(x.str, AutoDetect));
 		let n = fixture.fill(&sample, &mut buff);
 		assert_eq!(n, 1);
 		assert_eq!(buff.len(), 1);
 		assert_eq!(buff[0].value(), "ref str");
 		assert!(matches!(buff[0].quoted_mode(), QuoteMode::AutoDetect));
 
-		fixture.push(|x| Description::new_string(x.int.to_string(), AutoDetect));
+		fixture.push(|x| Description::from_string(x.int.to_string(), AutoDetect));
 		let n = fixture.fill(&sample, &mut buff);
 		assert_eq!(n, 2);
 		assert_eq!(buff.len(), 2);
@@ -136,7 +136,7 @@ mod tests {
 		assert_eq!(buff[1].value(), "42");
 		assert!(matches!(buff[1].quoted_mode(), QuoteMode::AutoDetect));
 
-		fixture.push(|x| Description::new_string(x.string.clone(), Quoted));
+		fixture.push(|x| Description::from_string(x.string.clone(), Quoted));
 		let n = fixture.fill(&sample, &mut buff);
 		assert_eq!(n, 3);
 		assert_eq!(buff.len(), 3);
@@ -155,13 +155,13 @@ mod tests {
 	fn append_test() {
 		let sample = Sample::gen_sample();
 		let mut fixture_int = Descriptor::<Sample>::default();
-		fixture_int.push(|x| Description::new_string(x.int.to_string(), AutoDetect));
+		fixture_int.push(|x| Description::from_string(x.int.to_string(), AutoDetect));
 
 		let mut fixture_string = Descriptor::<Sample>::default();
-		fixture_string.push(|x| Description::new_str(x.string.as_str(), Quoted));
+		fixture_string.push(|x| Description::from_str(x.string.as_str(), Quoted));
 
 		let mut fixture_str = Descriptor::<Sample>::default();
-		fixture_str.push(|x| Description::new_str(x.str, AutoDetect));
+		fixture_str.push(|x| Description::from_str(x.str, AutoDetect));
 
 		let mut act = Vec::default();
 
