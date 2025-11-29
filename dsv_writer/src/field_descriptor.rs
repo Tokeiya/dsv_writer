@@ -5,7 +5,6 @@ pub struct Descriptor<'a, T>(Box<dyn Fn(&T) -> Description + 'a>);
 
 impl<'a, T, F> From<F> for Descriptor<'a, T>
 where
-	// The closure must work for any lifetime 'a of &T, returning Description<'a>
 	F: Fn(&T) -> Description + 'a,
 {
 	fn from(f: F) -> Self {
