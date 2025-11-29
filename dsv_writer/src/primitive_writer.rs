@@ -1,13 +1,9 @@
 use super::error::Result;
+use crate::quote_mode::QuoteMode;
 use std::borrow::Cow;
 use std::collections::HashSet;
-type StrCow<'a> = Cow<'a, str>;
 
-#[derive(Debug, Clone, Copy)]
-pub enum QuoteMode {
-	Quoted,
-	AutoDetect,
-}
+type StrCow<'a> = Cow<'a, str>;
 
 pub struct PrimitiveWriter<W, const D: char> {
 	writer: W,

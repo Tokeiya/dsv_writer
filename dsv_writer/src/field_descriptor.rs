@@ -22,7 +22,7 @@ impl<'a, T> Descriptor<'a, T> {
 #[cfg(test)]
 mod test {
 	use super::*;
-	use crate::primitive_writer::QuoteMode;
+	use crate::quote_mode::QuoteMode;
 	
 	pub struct Sample(pub &'static str);
 

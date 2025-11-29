@@ -1,4 +1,4 @@
-use crate::primitive_writer::QuoteMode;
+use crate::quote_mode::QuoteMode;
 
 #[derive(Debug)]
 pub struct Description {

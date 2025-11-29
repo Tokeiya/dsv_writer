@@ -36,8 +36,8 @@ impl<'a, T> Descriptor<'a, T> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::primitive_writer::QuoteMode;
-	use crate::primitive_writer::QuoteMode::{AutoDetect, Quoted};
+	use crate::quote_mode::QuoteMode;
+	use crate::quote_mode::QuoteMode::{AutoDetect, Quoted};
 	
 	struct Sample {
 		pub int: i32,
@@ -64,24 +64,20 @@ mod tests {
 	#[test]
 	fn push_test() {
 		let mut fixture = Descriptor::<Sample>::default();
-		fixture
-			.push(|x| Description::from_str(x.str, crate::primitive_writer::QuoteMode::AutoDetect));
+		fixture.push(|x| Description::from_str(x.str, AutoDetect));
 
 		let sample = Sample::gen_sample();
 
 		let actual = fixture.describe(&sample);
 		assert_eq!(actual.len(), 1);
 		assert_eq!(actual[0].value(), "ref str");
-		assert!(matches!(
-			actual[0].quoted_mode(),
-			crate::primitive_writer::QuoteMode::AutoDetect
-		));
+		assert!(matches!(actual[0].quoted_mode(), AutoDetect));
 
 		fixture.push(|x| Description::from_string(x.int.to_string(), QuoteMode::AutoDetect));
 		let actual = fixture.describe(&sample);
 		assert_eq!(actual.len(), 2);
 		assert_eq!(actual[1].value(), "42");
-		assert!(matches!(actual[1].quoted_mode(), QuoteMode::AutoDetect));
+		assert!(matches!(actual[1].quoted_mode(), AutoDetect));
 	}
 
 	#[test]
