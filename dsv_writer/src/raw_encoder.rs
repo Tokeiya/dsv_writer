@@ -11,7 +11,6 @@ pub enum EscapeOutcome {
 }
 
 pub trait Encoder {
-	fn classify_char(&self, value: char) -> EscapeOutcome;
 	fn should_quoting(&self, value: &str) -> bool;
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> Result<usize>;
 	fn write_string_field(&mut self, value: String, quote_mode: QuoteMode) -> Result<usize> {
@@ -40,7 +39,7 @@ pub trait Encoder {
 #[cfg(test)]
 mod tests {
 	use crate::quote_mode::QuoteMode;
-	use crate::raw_encoder::{Encoder, EscapeOutcome, StrCow};
+	use crate::raw_encoder::{Encoder, StrCow};
 	use std::collections::HashSet;
 	use std::sync::LazyLock;
 	
@@ -65,10 +64,6 @@ mod tests {
 	}
 
 	impl Encoder for Writer {
-		fn classify_char(&self, value: char) -> EscapeOutcome {
-			unreachable!()
-		}
-
 		fn should_quoting(&self, value: &str) -> bool {
 			value.chars().any(|c| DICT.contains(&c))
 		}
