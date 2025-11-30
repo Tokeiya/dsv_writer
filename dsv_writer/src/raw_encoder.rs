@@ -33,12 +33,14 @@ pub trait Encoder {
 		buff.push('"');
 		buff
 	}
+
+	fn cnt(&self) -> usize;
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::primitive_encoder::{Encoder, EscapeOutcome, StrCow};
 	use crate::quote_mode::QuoteMode;
+	use crate::raw_encoder::{Encoder, EscapeOutcome, StrCow};
 	use std::collections::HashSet;
 	use std::sync::LazyLock;
 	
@@ -64,11 +66,7 @@ mod tests {
 
 	impl Encoder for Writer {
 		fn classify_char(&self, value: char) -> EscapeOutcome {
-			if value == '"' {
-				EscapeOutcome::DuplicatedQuote
-			} else {
-				EscapeOutcome::NotEscaped
-			}
+			unreachable!()
 		}
 
 		fn should_quoting(&self, value: &str) -> bool {
@@ -91,8 +89,11 @@ mod tests {
 		}
 
 		fn end_of_record(&mut self, _: bool) -> crate::error::Result<usize> {
-			self.buff.push(vec![]);
-			Ok(self.buff.len())
+			unreachable!()
+		}
+
+		fn cnt(&self) -> usize {
+			unreachable!()
 		}
 	}
 
