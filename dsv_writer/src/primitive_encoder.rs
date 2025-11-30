@@ -73,28 +73,7 @@ mod tests {
 			value: &str,
 			quote_mode: QuoteMode,
 		) -> crate::error::Result<usize> {
-			let flg = quote_mode == QuoteMode::Quoted || self.should_quoting(value);
-
-			if flg {
-				let mut buff = String::new();
-				buff.push('"');
-
-				for c in value.chars() {
-					if self.classify_char(c) == EscapeOutcome::DuplicatedQuote {
-						buff.push('"');
-					} else {
-						buff.push(c);
-					}
-				}
-
-				buff.push('"');
-				let len = buff.len();
-				self.buff.push(buff);
-				Ok(len)
-			} else {
-				self.buff.push(value.to_string());
-				Ok(value.len())
-			}
+			todo!()
 		}
 
 		fn end_of_record(&mut self, _: bool) -> crate::error::Result<usize> {
@@ -107,5 +86,25 @@ mod tests {
 			self.cnt = self.buff.len() - 1;
 			Ok(size)
 		}
+	}
+
+	#[test]
+	fn write_string_field_test() {
+		todo!();
+	}
+
+	#[test]
+	fn write_value_field_test() {
+		todo!();
+	}
+
+	#[test]
+	fn escape_test() {
+		todo!();
+	}
+
+	#[test]
+	fn add_quote_test() {
+		todo!();
 	}
 }
