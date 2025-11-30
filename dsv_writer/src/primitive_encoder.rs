@@ -4,8 +4,9 @@ use std::borrow::Cow;
 
 pub type StrCow<'a> = Cow<'a, str>;
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum EscapeOutcome {
-	NotEscaped(char),
+	NotEscaped,
 	DuplicatedQuote,
 }
 
@@ -38,7 +39,7 @@ mod tests {
 	use crate::quote_mode::QuoteMode;
 	use std::collections::HashSet;
 	use std::sync::LazyLock;
-	
+
 	static DICT: LazyLock<HashSet<char>> = LazyLock::new(|| {
 		let mut set = HashSet::new();
 		set.insert('"');
@@ -51,6 +52,7 @@ mod tests {
 
 	pub struct TestEncoder {
 		pub buff: Vec<String>,
+		pub cnt: usize,
 	}
 
 	impl Encoder<',', 3> for TestEncoder {
@@ -58,7 +60,7 @@ mod tests {
 			if value == '"' {
 				EscapeOutcome::DuplicatedQuote
 			} else {
-				EscapeOutcome::NotEscaped(value)
+				EscapeOutcome::NotEscaped
 			}
 		}
 
@@ -71,13 +73,39 @@ mod tests {
 			value: &str,
 			quote_mode: QuoteMode,
 		) -> crate::error::Result<usize> {
-			let flg = self.should_quoting(value);
+			let flg = quote_mode == QuoteMode::Quoted || self.should_quoting(value);
 
-			todo!()
+			if flg {
+				let mut buff = String::new();
+				buff.push('"');
+
+				for c in value.chars() {
+					if self.classify_char(c) == EscapeOutcome::DuplicatedQuote {
+						buff.push('"');
+					} else {
+						buff.push(c);
+					}
+				}
+
+				buff.push('"');
+				let len = buff.len();
+				self.buff.push(buff);
+				Ok(len)
+			} else {
+				self.buff.push(value.to_string());
+				Ok(value.len())
+			}
 		}
 
 		fn end_of_record(&mut self, _: bool) -> crate::error::Result<usize> {
-			todo!()
+			let mut size = 0usize;
+
+			for idx in self.cnt..self.buff.len() {
+				size += self.buff[idx].len();
+			}
+
+			self.cnt = self.buff.len() - 1;
+			Ok(size)
 		}
 	}
 }
