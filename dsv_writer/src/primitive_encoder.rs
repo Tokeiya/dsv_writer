@@ -15,18 +15,23 @@ pub trait Encoder {
 	fn should_quoting(&self, value: &str) -> bool;
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> Result<usize>;
 	fn write_string_field(&mut self, value: String, quote_mode: QuoteMode) -> Result<usize> {
-		todo!()
+		self.write_str_field(&value, quote_mode)
 	}
 	fn write_value_field<T: ToString>(
 		&mut self,
 		value: &T,
 		quote_mode: QuoteMode,
 	) -> Result<usize> {
-		todo!()
+		self.write_str_field(value.to_string().as_str(), quote_mode)
 	}
 	fn end_of_record(&mut self, should_flush: bool) -> Result<usize>;
 	fn add_quote(&self, value: Cow<'_, str>) -> String {
-		todo!()
+		let mut buff = String::new();
+
+		buff.push('"');
+		buff.push_str(&value.replace('"', r#""""#));
+		buff.push('"');
+		buff
 	}
 }
 
@@ -122,9 +127,7 @@ mod tests {
 		assert_eq!(cnt, 1);
 		assert_eq!(writer.buff.last().unwrap()[0], "100");
 
-		let cnt = writer
-			.write_value_field(&42, QuoteMode::AutoDetect)
-			.unwrap();
+		let cnt = writer.write_value_field(&42, QuoteMode::Quoted).unwrap();
 		assert_eq!(cnt, 2);
 		assert_eq!(writer.buff.last().unwrap()[1], r#""42""#);
 	}
@@ -135,7 +138,7 @@ mod tests {
 		assert_eq!(quoted, r#""test""#);
 
 		let quoted = writer.add_quote(r#""te,st""#.into());
-		assert_eq!(quoted, r#""te,st""#);
+		assert_eq!(quoted, r####""""te,st""""####);
 
 		let quoted = writer.add_quote(r#"te"st"#.into());
 		assert_eq!(quoted, r#""te""st""#);
