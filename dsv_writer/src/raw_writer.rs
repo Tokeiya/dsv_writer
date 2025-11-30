@@ -1,8 +1,9 @@
+use super::argument_error::Result as ArgumentResult;
+use super::raw_encoder_error::Result as EncoderResult;
 use crate::quote_mode::QuoteMode;
 use crate::raw_encoder::Encoder;
 use std::collections::HashSet;
 use std::io::Write;
-
 pub struct RawWriter<W> {
 	writer: W,
 	cnt: usize,
@@ -12,7 +13,7 @@ pub struct RawWriter<W> {
 }
 
 impl<W: Write> RawWriter<W> {
-	pub fn new(writer: W, delimiter: char) -> Self {
+	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
 		todo!()
 	}
 }
@@ -22,19 +23,90 @@ impl<W: Write> Encoder for RawWriter<W> {
 		todo!()
 	}
 
-	fn write_str_field(
-		&mut self,
-		value: &str,
-		quote_mode: QuoteMode,
-	) -> crate::error::Result<usize> {
+	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> EncoderResult<usize> {
 		todo!()
 	}
 
-	fn end_of_record(&mut self, should_flush: bool) -> crate::error::Result<usize> {
+	fn end_of_record(&mut self, should_flush: bool) -> EncoderResult<usize> {
 		todo!()
 	}
 
 	fn cnt(&self) -> usize {
+		todo!()
+	}
+}
+
+#[cfg(test)]
+mod test {
+	use super::*;
+	use crate::argument_error::ArgumentError;
+	use mockall::{mock, predicate};
+	use std::io::Write;
+	
+	mock! {
+		pub Writer{}
+		impl Write for Writer{
+			fn write(&mut self, buf: &[u8]) -> std::io::Result<usize>;
+			fn flush(&mut self) -> std::io::Result<()>;
+		}
+	}
+
+	#[test]
+	fn new_test() {
+		let mut mock = MockWriter::new();
+		mock.expect_write()
+			.with(predicate::always())
+			.returning(|x| Ok(x.len()))
+			.once();
+
+		let fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		assert_eq!(fixture.cnt, 0);
+		assert_eq!(fixture.buffer, "");
+		assert_eq!(fixture.delimiter, ',');
+
+		assert_eq!(fixture.escape_set.len(), 4);
+		assert!(fixture.escape_set.contains(&'"'));
+		assert!(fixture.escape_set.contains(&'\n'));
+		assert!(fixture.escape_set.contains(&'\r'));
+		assert!(fixture.escape_set.contains(&','));
+
+		let mock = MockWriter::new();
+		let fixture = RawWriter::<MockWriter>::try_new(mock, '\"');
+
+		assert!(matches!(fixture, Err(ArgumentError::ArgumentError(_))));
+	}
+
+	#[test]
+	fn should_quoting_test() {
+		let mock = MockWriter::new();
+		let fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		assert!(!fixture.should_quoting("hello"));
+		assert!(fixture.should_quoting("\"hello\""));
+		assert!(fixture.should_quoting("hello,world"));
+		assert!(fixture.should_quoting("\r"));
+		assert!(fixture.should_quoting("\n"));
+		assert!(!fixture.should_quoting("\t"));
+	}
+
+	#[test]
+	fn write_str_field_test() {
+		let mut mock = MockWriter::new();
+		let mut seq = mockall::Sequence::new();
+
+		mock.expect_write()
+			.once()
+			.in_sequence(&mut seq)
+			.returning(|x| Ok(x.len()))
+			.with(predicate::eq(b"hello,world\r\n".as_slice()));
+	}
+
+	#[test]
+	fn end_of_record_test() {
+		todo!()
+	}
+
+	#[test]
+	fn cnt_test() {
 		todo!()
 	}
 }

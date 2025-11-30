@@ -1,4 +1,4 @@
-use super::error::Result;
+use super::raw_encoder_error::Result;
 use crate::quote_mode::QuoteMode;
 use std::borrow::Cow;
 
@@ -72,7 +72,7 @@ mod tests {
 			&mut self,
 			value: &str,
 			quote_mode: QuoteMode,
-		) -> crate::error::Result<usize> {
+		) -> crate::raw_encoder_error::Result<usize> {
 			let tmp: StrCow = if quote_mode == QuoteMode::Quoted || self.should_quoting(value) {
 				self.add_quote(value.into()).into()
 			} else {
@@ -83,7 +83,7 @@ mod tests {
 			Ok(self.buff.last().unwrap().len())
 		}
 
-		fn end_of_record(&mut self, _: bool) -> crate::error::Result<usize> {
+		fn end_of_record(&mut self, _: bool) -> crate::raw_encoder_error::Result<usize> {
 			unreachable!()
 		}
 

@@ -1,4 +1,4 @@
-use super::error::Result;
+use super::raw_encoder_error::Result;
 use crate::quote_mode::QuoteMode;
 use std::borrow::Cow;
 use std::collections::HashSet;
