@@ -10,7 +10,7 @@ pub enum EscapeOutcome {
 	DuplicatedQuote,
 }
 
-pub trait Encoder<const D: char, const N: usize> {
+pub trait Encoder {
 	fn classify_char(&self, value: char) -> EscapeOutcome;
 	fn should_quoting(&self, value: &str) -> bool;
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> Result<usize>;
@@ -47,17 +47,17 @@ mod tests {
 		set
 	});
 
-	pub struct TestEncoder {
+	pub struct Writer {
 		pub buff: Vec<Vec<String>>,
 	}
 
-	impl Default for TestEncoder {
+	impl Default for Writer {
 		fn default() -> Self {
 			Self { buff: vec![vec![]] }
 		}
 	}
 
-	impl Encoder<',', 3> for TestEncoder {
+	impl Encoder for Writer {
 		fn classify_char(&self, value: char) -> EscapeOutcome {
 			if value == '"' {
 				EscapeOutcome::DuplicatedQuote
@@ -93,21 +93,51 @@ mod tests {
 
 	#[test]
 	fn write_string_field_test() {
-		todo!();
+		let mut writer = Writer::default();
+		let cnt = writer
+			.write_string_field("test".to_string(), QuoteMode::AutoDetect)
+			.unwrap();
+		assert_eq!(cnt, 1);
+		assert_eq!(writer.buff.last().unwrap()[0], "test");
+
+		let cnt = writer
+			.write_string_field("test,test".to_string(), QuoteMode::AutoDetect)
+			.unwrap();
+		assert_eq!(cnt, 2);
+		assert_eq!(writer.buff.last().unwrap()[1], r#""test,test""#);
+
+		let cnt = writer
+			.write_string_field("hoge".to_string(), QuoteMode::Quoted)
+			.unwrap();
+		assert_eq!(cnt, 3);
+		assert_eq!(writer.buff.last().unwrap()[2], r#""hoge""#);
 	}
 
 	#[test]
 	fn write_value_field_test() {
-		todo!();
-	}
+		let mut writer = Writer::default();
+		let cnt = writer
+			.write_value_field(&100, QuoteMode::AutoDetect)
+			.unwrap();
+		assert_eq!(cnt, 1);
+		assert_eq!(writer.buff.last().unwrap()[0], "100");
 
-	#[test]
-	fn escape_test() {
-		todo!();
+		let cnt = writer
+			.write_value_field(&42, QuoteMode::AutoDetect)
+			.unwrap();
+		assert_eq!(cnt, 2);
+		assert_eq!(writer.buff.last().unwrap()[1], r#""42""#);
 	}
-
 	#[test]
 	fn add_quote_test() {
-		todo!();
+		let writer = Writer::default();
+		let quoted = writer.add_quote("test".into());
+		assert_eq!(quoted, r#""test""#);
+
+		let quoted = writer.add_quote(r#""te,st""#.into());
+		assert_eq!(quoted, r#""te,st""#);
+
+		let quoted = writer.add_quote(r#"te"st"#.into());
+		assert_eq!(quoted, r#""te""st""#);
 	}
 }
