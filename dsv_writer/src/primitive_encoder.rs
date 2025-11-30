@@ -25,9 +25,6 @@ pub trait Encoder<const D: char, const N: usize> {
 		todo!()
 	}
 	fn end_of_record(&mut self, should_flush: bool) -> Result<usize>;
-	fn escape<'a>(&self, value: Cow<'a, str>) -> (StrCow<'a>, bool) {
-		todo!()
-	}
 	fn add_quote(&self, value: Cow<'_, str>) -> String {
 		todo!()
 	}
@@ -35,11 +32,11 @@ pub trait Encoder<const D: char, const N: usize> {
 
 #[cfg(test)]
 mod tests {
-	use crate::primitive_encoder::{Encoder, EscapeOutcome};
+	use crate::primitive_encoder::{Encoder, EscapeOutcome, StrCow};
 	use crate::quote_mode::QuoteMode;
 	use std::collections::HashSet;
 	use std::sync::LazyLock;
-
+	
 	static DICT: LazyLock<HashSet<char>> = LazyLock::new(|| {
 		let mut set = HashSet::new();
 		set.insert('"');
@@ -51,8 +48,13 @@ mod tests {
 	});
 
 	pub struct TestEncoder {
-		pub buff: Vec<String>,
-		pub cnt: usize,
+		pub buff: Vec<Vec<String>>,
+	}
+
+	impl Default for TestEncoder {
+		fn default() -> Self {
+			Self { buff: vec![vec![]] }
+		}
 	}
 
 	impl Encoder<',', 3> for TestEncoder {
@@ -73,18 +75,19 @@ mod tests {
 			value: &str,
 			quote_mode: QuoteMode,
 		) -> crate::error::Result<usize> {
-			todo!()
+			let tmp: StrCow = if quote_mode == QuoteMode::Quoted || self.should_quoting(value) {
+				self.add_quote(value.into()).into()
+			} else {
+				value.into()
+			};
+
+			self.buff.last_mut().unwrap().push(tmp.into());
+			Ok(self.buff.last().unwrap().len())
 		}
 
 		fn end_of_record(&mut self, _: bool) -> crate::error::Result<usize> {
-			let mut size = 0usize;
-
-			for idx in self.cnt..self.buff.len() {
-				size += self.buff[idx].len();
-			}
-
-			self.cnt = self.buff.len() - 1;
-			Ok(size)
+			self.buff.push(vec![]);
+			Ok(self.buff.len())
 		}
 	}
 
