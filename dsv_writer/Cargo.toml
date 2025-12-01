@@ -10,3 +10,4 @@ mockall = "*"
 [dependencies]
 thiserror = "*"
 anyhow = "*"
+predicates-core = "1.0.9"

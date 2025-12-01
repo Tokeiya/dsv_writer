@@ -38,10 +38,12 @@ impl<W: Write> Encoder for RawWriter<W> {
 
 #[cfg(test)]
 mod test {
+	use std::fmt::{Display, Formatter};
 	use super::*;
 	use crate::argument_error::ArgumentError;
-	use mockall::{mock, predicate};
+	use mockall::{mock, predicate, Predicate};
 	use std::io::Write;
+	use predicates_core::reflection::PredicateReflection;
 	
 	mock! {
 		pub Writer{}
@@ -50,7 +52,60 @@ mod test {
 			fn flush(&mut self) -> std::io::Result<()>;
 		}
 	}
-
+	
+	pub struct VerboseEqPredicate([u8]);
+	
+	pub struct EqStrPredicate<'a>(&'a str);
+	
+	impl<'a> EqStrPredicate<'a> {
+		pub fn new(value: &'a str) -> Self {
+			EqStrPredicate(value)
+		}
+	}
+	
+	impl<'a> PredicateReflection for EqStrPredicate<'a> {}
+	
+	impl<'a> Display for EqStrPredicate<'a> {
+		fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+			todo!()
+		}
+	}
+	
+	impl<'a> Predicate<[u8]> for EqStrPredicate<'a>{
+		fn eval(&self, variable: &[u8]) -> bool {
+			todo!()
+		}
+	}
+	
+	fn srt_eq(value: &str) -> EqStrPredicate<'_> {
+		EqStrPredicate::new(value)
+	}
+	
+	#[test]
+	fn end_of_record_test() {
+		let mut mock = MockWriter::new();
+		let mut seq = mockall::Sequence::new();
+		
+		let eq=predicate::eq(b"hello,world\r\n".as_slice());
+		eq.eval(b"hello,world\r".as_slice());
+		println!("{:?}", eq);
+		
+		let eq=srt_eq("\r\n");
+		mock.expect_write().once()
+			.with(eq);
+		
+		
+		mock.write(b"\r\n".as_slice()).unwrap();
+		
+		
+		
+		
+		//todo!()
+	}
+	
+	
+	
+	
 	#[test]
 	fn new_test() {
 		let mut mock = MockWriter::new();
@@ -98,12 +153,9 @@ mod test {
 			.in_sequence(&mut seq)
 			.returning(|x| Ok(x.len()))
 			.with(predicate::eq(b"hello,world\r\n".as_slice()));
+		
 	}
 
-	#[test]
-	fn end_of_record_test() {
-		todo!()
-	}
 
 	#[test]
 	fn cnt_test() {
