@@ -1,7 +1,6 @@
 mod argument_error;
 pub mod field_description;
 mod field_descriptor;
-pub mod primitive_writer;
 mod quote_mode;
 mod raw_encoder;
 pub mod raw_encoder_error;
