@@ -1,7 +1,8 @@
-use super::argument_error::Result as ArgumentResult;
+use super::argument_error::{ArgumentError, Result as ArgumentResult};
 use super::raw_encoder_error::Result as EncoderResult;
 use crate::quote_mode::QuoteMode;
 use crate::raw_encoder::Encoder;
+use std::borrow::Cow;
 use std::collections::HashSet;
 use std::io::Write;
 pub struct RawWriter<W> {
@@ -14,36 +15,71 @@ pub struct RawWriter<W> {
 
 impl<W: Write> RawWriter<W> {
 	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
-		todo!()
+		if delimiter == '"' {
+			Err(ArgumentError::ArgumentError(
+				"\" is not allowed as delimiter".to_string(),
+			))
+		} else {
+			Ok(RawWriter {
+				writer,
+				cnt: 0,
+				buffer: String::new(),
+				delimiter,
+				escape_set: HashSet::from(['"', '\n', '\r', delimiter]),
+			})
+		}
 	}
 }
 
 impl<W: Write> Encoder for RawWriter<W> {
 	fn should_quoting(&self, value: &str) -> bool {
-		todo!()
+		value.chars().any(|c| self.escape_set.contains(&c))
 	}
 
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> EncoderResult<usize> {
-		todo!()
+		let tmp: Cow<str> = if quote_mode == QuoteMode::Quoted || self.should_quoting(value) {
+			self.add_quote(value.into()).into()
+		} else {
+			value.into()
+		};
+
+		self.buffer.push_str(&tmp);
+		self.buffer.push(self.delimiter);
+		self.cnt += 1;
+
+		Ok(self.cnt)
 	}
 
 	fn end_of_record(&mut self, should_flush: bool) -> EncoderResult<usize> {
-		todo!()
+		if self.cnt > 0 {
+			self.buffer.pop();
+		}
+
+		self.buffer.push_str("\r\n");
+		self.writer.write_all(self.buffer.as_bytes())?;
+		let c = self.cnt;
+		self.cnt = 0;
+
+		if should_flush {
+			self.writer.flush()?;
+		}
+
+		Ok(c)
 	}
 
 	fn cnt(&self) -> usize {
-		todo!()
+		self.cnt
 	}
 }
 
 #[cfg(test)]
 mod test {
-	use std::fmt::{Display, Formatter};
 	use super::*;
 	use crate::argument_error::ArgumentError;
-	use mockall::{mock, predicate, Predicate};
-	use std::io::Write;
+	use mockall::{mock, predicate, CaseTreeExt, Predicate};
 	use predicates_core::reflection::PredicateReflection;
+	use std::fmt::{Display, Formatter};
+	use std::io::Write;
 	
 	mock! {
 		pub Writer{}
@@ -52,67 +88,81 @@ mod test {
 			fn flush(&mut self) -> std::io::Result<()>;
 		}
 	}
-	
-	pub struct VerboseEqPredicate([u8]);
-	
+
 	pub struct EqStrPredicate<'a>(&'a str);
-	
+
 	impl<'a> EqStrPredicate<'a> {
 		pub fn new(value: &'a str) -> Self {
 			EqStrPredicate(value)
 		}
 	}
-	
-	impl<'a> PredicateReflection for EqStrPredicate<'a> {}
-	
+
 	impl<'a> Display for EqStrPredicate<'a> {
 		fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-			todo!()
+			write!(f, "EqStrPredicate(Disp:{} Dbg:{:?})", self.0, self.0)
 		}
 	}
-	
-	impl<'a> Predicate<[u8]> for EqStrPredicate<'a>{
+
+	impl<'a> PredicateReflection for EqStrPredicate<'a> {}
+
+	impl<'a> Predicate<[u8]> for EqStrPredicate<'a> {
 		fn eval(&self, variable: &[u8]) -> bool {
-			todo!()
+			let exp = self.0.as_bytes();
+
+			let result =
+				variable.len() == exp.len() && variable.iter().zip(exp).all(|(a, b)| a == b);
+
+			if result {
+				result
+			} else {
+				let act = String::from_utf8_lossy(variable);
+				let exp = self.0;
+				println!("actual:{act} expected:{exp}");
+				println!("dbg_actual:{:?} dbg_expected:{:?}", act, exp);
+				false
+			}
 		}
 	}
-	
-	fn srt_eq(value: &str) -> EqStrPredicate<'_> {
+
+	fn str_eq(value: &str) -> EqStrPredicate<'_> {
 		EqStrPredicate::new(value)
 	}
-	
+
 	#[test]
 	fn end_of_record_test() {
 		let mut mock = MockWriter::new();
 		let mut seq = mockall::Sequence::new();
-		
-		let eq=predicate::eq(b"hello,world\r\n".as_slice());
-		eq.eval(b"hello,world\r".as_slice());
-		println!("{:?}", eq);
-		
-		let eq=srt_eq("\r\n");
-		mock.expect_write().once()
-			.with(eq);
-		
-		
-		mock.write(b"\r\n".as_slice()).unwrap();
-		
-		
-		
-		
-		//todo!()
+
+		mock.expect_write()
+			.once()
+			.in_sequence(&mut seq)
+			.returning(|x| Ok(x.len()))
+			.with(str_eq("hello,world\r\n"))
+			.returning(|x| Ok(x.len()));
+
+		mock.expect_flush()
+			.once()
+			.returning(|| Ok(()))
+			.in_sequence(&mut seq);
+
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		fixture
+			.write_str_field("hello", QuoteMode::AutoDetect)
+			.unwrap();
+		fixture
+			.write_str_field("world", QuoteMode::AutoDetect)
+			.unwrap();
+
+		let act = fixture.end_of_record(true).unwrap();
+		assert_eq!(act, 2);
 	}
-	
-	
-	
-	
+
 	#[test]
 	fn new_test() {
 		let mut mock = MockWriter::new();
 		mock.expect_write()
 			.with(predicate::always())
-			.returning(|x| Ok(x.len()))
-			.once();
+			.returning(|x| Ok(x.len()));
 
 		let fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
 		assert_eq!(fixture.cnt, 0);
@@ -145,20 +195,46 @@ mod test {
 
 	#[test]
 	fn write_str_field_test() {
-		let mut mock = MockWriter::new();
-		let mut seq = mockall::Sequence::new();
+		let mock = MockWriter::new();
 
-		mock.expect_write()
-			.once()
-			.in_sequence(&mut seq)
-			.returning(|x| Ok(x.len()))
-			.with(predicate::eq(b"hello,world\r\n".as_slice()));
-		
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		let cnt = fixture
+			.write_str_field("hel,lo", QuoteMode::AutoDetect)
+			.unwrap();
+
+		assert_eq!(cnt, 1);
+
+		let cnt = fixture
+			.write_str_field("world", QuoteMode::AutoDetect)
+			.unwrap();
+
+		assert_eq!(cnt, 2);
+		assert_eq!(fixture.buffer, r##""hel,lo",world,"##);
 	}
-
 
 	#[test]
 	fn cnt_test() {
-		todo!()
+		let mut mock = MockWriter::new();
+		mock.expect_write()
+			.with(predicate::always())
+			.returning(|x| Ok(x.len()));
+
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		assert_eq!(fixture.cnt(), 0);
+
+		let cnt = fixture
+			.write_str_field("hello", QuoteMode::AutoDetect)
+			.unwrap();
+		assert_eq!(fixture.cnt(), cnt);
+		assert_eq!(fixture.cnt(), 1);
+
+		let cnt = fixture
+			.write_value_field(&42, QuoteMode::AutoDetect)
+			.unwrap();
+		assert_eq!(fixture.cnt(), cnt);
+		assert_eq!(fixture.cnt(), 2);
+
+		_ = fixture.end_of_record(false).unwrap();
+		assert_eq!(fixture.cnt(), 0);
 	}
 }
