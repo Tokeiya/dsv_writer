@@ -80,7 +80,7 @@ impl<W: Write> Encoder for RawWriter<W> {
 mod test {
 	use super::*;
 	use common_errors::invalid_argument::Error as ArgumentError;
-	use mockall::{mock, predicate, CaseTreeExt, Predicate};
+	use mockall::{mock, predicate, Predicate};
 	use predicates_core::reflection::PredicateReflection;
 	use std::fmt::{Display, Formatter};
 	use std::io::Write;
