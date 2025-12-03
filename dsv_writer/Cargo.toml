@@ -2,12 +2,13 @@
 name = "dsv_writer"
 version = "0.1.0"
 edition = "2024"
+publish = ["kellnr"]
 
 [dev-dependencies]
 mockall = "*"
-
 
 [dependencies]
 thiserror = "*"
 anyhow = "*"
 predicates-core = "1.0.9"
+common_errors = { version = "*", registry = "kellnr" }

@@ -1,10 +1,13 @@
-use super::argument_error::{ArgumentError, Result as ArgumentResult};
 use super::raw_encoder_error::Result as EncoderResult;
 use crate::quote_mode::QuoteMode;
 use crate::raw_encoder::Encoder;
+use common_errors::invalid_argument::{Error as ArgumentError, Information};
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::io::Write;
+
+type ArgumentResult<T> = Result<T, ArgumentError>;
+
 pub struct RawWriter<W> {
 	writer: W,
 	cnt: usize,
@@ -16,9 +19,10 @@ pub struct RawWriter<W> {
 impl<W: Write> RawWriter<W> {
 	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
 		if delimiter == '"' {
-			Err(ArgumentError::ArgumentError(
+			Err(ArgumentError::ArgumentOutOfRange(Information::new_both(
+				"delimiter".to_string(),
 				"\" is not allowed as delimiter".to_string(),
-			))
+			)))
 		} else {
 			Ok(RawWriter {
 				writer,
@@ -75,7 +79,7 @@ impl<W: Write> Encoder for RawWriter<W> {
 #[cfg(test)]
 mod test {
 	use super::*;
-	use crate::argument_error::ArgumentError;
+	use common_errors::invalid_argument::Error as ArgumentError;
 	use mockall::{mock, predicate, CaseTreeExt, Predicate};
 	use predicates_core::reflection::PredicateReflection;
 	use std::fmt::{Display, Formatter};
@@ -178,7 +182,7 @@ mod test {
 		let mock = MockWriter::new();
 		let fixture = RawWriter::<MockWriter>::try_new(mock, '\"');
 
-		assert!(matches!(fixture, Err(ArgumentError::ArgumentError(_))));
+		assert!(matches!(fixture, Err(ArgumentError::InvalidArgument(_))));
 	}
 
 	#[test]
