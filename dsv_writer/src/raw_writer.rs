@@ -19,7 +19,7 @@ pub struct RawWriter<W> {
 impl<W: Write> RawWriter<W> {
 	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
 		if delimiter == '"' {
-			Err(ArgumentError::ArgumentOutOfRange(Information::new_both(
+			Err(ArgumentError::InvalidArgument(Information::new_both(
 				"delimiter".to_string(),
 				"\" is not allowed as delimiter".to_string(),
 			)))
@@ -181,7 +181,7 @@ mod test {
 
 		let mock = MockWriter::new();
 		let fixture = RawWriter::<MockWriter>::try_new(mock, '\"');
-
+		
 		assert!(matches!(fixture, Err(ArgumentError::InvalidArgument(_))));
 	}
 
