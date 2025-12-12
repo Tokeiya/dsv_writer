@@ -22,9 +22,9 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "common_errors"
-version = "0.1.0"
+version = "0.3.0"
 source = "sparse+http://clear:8000/api/v1/crates/"
-checksum = "064acc71138236a7f0ac34840e981a90670ccf61fb44ccf34d6bb9c10764dc7c"
+checksum = "7729cdc6a92c1f45b62242cf10ff3ffa39d5289ae82a5ef0b02ee5b2980ff02c"
 dependencies = [
  "thiserror",
 ]
@@ -37,7 +37,7 @@ checksum = "1435fa1053d8b2fbbe9be7e97eca7f33d37b28409959813daefc1446a14247f1"
 
 [[package]]
 name = "dsv_writer"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "common_errors",

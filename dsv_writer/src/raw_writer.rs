@@ -34,13 +34,13 @@ impl<W: Write> RawWriter<W> {
 			})
 		}
 	}
-}
 
-impl<W: Write> Encoder for RawWriter<W> {
 	fn should_quoting(&self, value: &str) -> bool {
 		value.chars().any(|c| self.escape_set.contains(&c))
 	}
+}
 
+impl<W: Write> Encoder for RawWriter<W> {
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> EncoderResult<usize> {
 		let tmp: Cow<str> = if quote_mode == QuoteMode::Quoted || self.should_quoting(value) {
 			self.add_quote(value.into()).into()
@@ -81,26 +81,29 @@ impl<W: Write> Encoder for RawWriter<W> {
 mod test {
 	use super::*;
 	use common_errors::invalid_argument::Error as ArgumentError;
-	use mockall::{mock, predicate, Predicate};
+	use mockall::{Predicate, mock, predicate};
 	use predicates_core::reflection::PredicateReflection;
 	use std::fmt::{Display, Formatter};
 	use std::io::Write;
-	
+
 	#[test]
 	fn playground() {
-		let mut vec=Vec::new();
-		
-		let mut writer=RawWriter::try_new(&mut vec, ',').unwrap();
-		writer.write_str_field("hello", QuoteMode::AutoDetect).unwrap();
-		writer.write_str_field("world", QuoteMode::AutoDetect).unwrap();
+		let mut vec = Vec::new();
+
+		let mut writer = RawWriter::try_new(&mut vec, ',').unwrap();
+		writer
+			.write_str_field("hello", QuoteMode::AutoDetect)
+			.unwrap();
+		writer
+			.write_str_field("world", QuoteMode::AutoDetect)
+			.unwrap();
 		writer.end_of_record(true).unwrap();
-		
-		
+
 		dbg!(&vec);
-		let str=String::from_utf8(vec).unwrap();
+		let str = String::from_utf8(vec).unwrap();
 		dbg!(&str);
 	}
-	
+
 	mock! {
 		pub Writer{}
 		impl Write for Writer{
@@ -197,7 +200,7 @@ mod test {
 
 		let mock = MockWriter::new();
 		let fixture = RawWriter::<MockWriter>::try_new(mock, '\"');
-		
+
 		assert!(matches!(fixture, Err(ArgumentError::InvalidArgument(_))));
 	}
 

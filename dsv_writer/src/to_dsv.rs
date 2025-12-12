@@ -78,10 +78,6 @@ mod test {
 	struct DummyEnc;
 
 	impl Encoder for DummyEnc {
-		fn should_quoting(&self, value: &str) -> bool {
-			todo!()
-		}
-
 		fn write_str_field(
 			&mut self,
 			value: &str,

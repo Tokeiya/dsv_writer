@@ -13,9 +13,7 @@ pub enum EscapeOutcome {
 	DuplicatedQuote,
 }
 
-
 pub trait Encoder {
-	fn should_quoting(&self, value: &str) -> bool;
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> Result<usize>;
 	fn write_string_field(&mut self, value: String, quote_mode: QuoteMode) -> Result<usize> {
 		self.write_str_field(&value, quote_mode)
@@ -46,7 +44,7 @@ mod tests {
 	use crate::raw_encoder::{Encoder, StrCow};
 	use std::collections::HashSet;
 	use std::sync::LazyLock;
-	
+
 	static DICT: LazyLock<HashSet<char>> = LazyLock::new(|| {
 		let mut set = HashSet::new();
 		set.insert('"');
@@ -68,10 +66,6 @@ mod tests {
 	}
 
 	impl Encoder for Writer {
-		fn should_quoting(&self, value: &str) -> bool {
-			value.chars().any(|c| DICT.contains(&c))
-		}
-
 		fn write_str_field(
 			&mut self,
 			value: &str,
@@ -93,6 +87,12 @@ mod tests {
 
 		fn cnt(&self) -> usize {
 			unreachable!()
+		}
+	}
+
+	impl Writer {
+		fn should_quoting(&self, value: &str) -> bool {
+			value.chars().any(|c| DICT.contains(&c))
 		}
 	}
 
