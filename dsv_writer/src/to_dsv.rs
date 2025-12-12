@@ -20,7 +20,7 @@ pub type Result<T,E> = StdResult<T,Error<E>>;
 
 pub trait ToOptionedDsv<E:StdError>{
 	type Opt;
-	fn to_dsv<T: Encoder>(&self, option: &Self::Opt, writer: &mut T) ->Result<(),E>;
+	fn to_opt_dsv<T: Encoder>(&self, option: &Self::Opt, writer: &mut T) ->Result<(),E>;
 }
 
 pub trait ToDsv<E:StdError>{
@@ -33,7 +33,7 @@ where
 	O:Default
 {
 	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> Result<(),E> {
-		self.to_dsv(&O::default(),writer)
+		self.to_opt_dsv(&O::default(),writer)
 	}
 }
 
@@ -70,7 +70,7 @@ mod test{
 	impl ToOptionedDsv<DummyErr> for DummyTarget{
 		type Opt = u16;
 		
-		fn to_dsv<T: Encoder>(&self, option: &Self::Opt, writer: &mut T) -> Result<(), DummyErr> {
+		fn to_opt_dsv<T: Encoder>(&self, option: &Self::Opt, writer: &mut T) -> Result<(), DummyErr> {
 			assert_eq!(*option,0);
 			Ok(())
 		}
