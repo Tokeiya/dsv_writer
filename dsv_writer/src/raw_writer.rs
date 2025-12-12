@@ -8,6 +8,7 @@ use std::io::Write;
 
 type ArgumentResult<T> = Result<T, ArgumentError>;
 
+#[derive(Debug)]
 pub struct RawWriter<W> {
 	writer: W,
 	cnt: usize,
@@ -84,6 +85,21 @@ mod test {
 	use predicates_core::reflection::PredicateReflection;
 	use std::fmt::{Display, Formatter};
 	use std::io::Write;
+	
+	#[test]
+	fn playground() {
+		let mut vec=Vec::new();
+		
+		let mut writer=RawWriter::try_new(&mut vec, ',').unwrap();
+		writer.write_str_field("hello", QuoteMode::AutoDetect).unwrap();
+		writer.write_str_field("world", QuoteMode::AutoDetect).unwrap();
+		writer.end_of_record(true).unwrap();
+		
+		
+		dbg!(&vec);
+		let str=String::from_utf8(vec).unwrap();
+		dbg!(&str);
+	}
 	
 	mock! {
 		pub Writer{}
