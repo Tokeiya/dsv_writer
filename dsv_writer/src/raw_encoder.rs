@@ -2,16 +2,7 @@ use super::raw_encoder_error::Result;
 use crate::quote_mode::QuoteMode;
 use std::borrow::Cow;
 
-#[cfg(test)]
-use mockall::automock;
-
 pub type StrCow<'a> = Cow<'a, str>;
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum EscapeOutcome {
-	NotEscaped,
-	DuplicatedQuote,
-}
 
 pub trait Encoder {
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> Result<usize>;
