@@ -1,5 +1,5 @@
 use crate::quote_mode::QuoteMode;
-use futures::io::{AsyncWrite, Error as IoError, Result as IoResult};
+use futures::io::{AsyncWrite, Result as IoResult};
 use std::borrow::Cow;
 
 pub type StrCow<'a> = Cow<'a, str>;
@@ -13,14 +13,15 @@ pub trait RawAsyncEncode {
 		value: String,
 		quote_mode: QuoteMode,
 	) -> IoResult<usize> {
-		todo!()
+		self.write_str_field(&value, quote_mode).await
 	}
-	async fn write_value_field<T: ToString>(
+	async fn write_value_field<T: ToString + ?Sized>(
 		&mut self,
 		value: &T,
 		quote_mode: QuoteMode,
 	) -> IoResult<usize> {
-		todo!()
+		self.write_str_field(value.to_string().as_str(), quote_mode)
+			.await
 	}
 	fn add_quote(value: &str) -> String {
 		let mut buf = String::new();
@@ -43,9 +44,10 @@ pub trait RawAsyncEncode {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use futures::io::{AsyncWriteExt, IoSlice};
-	use std::borrow::Cow;
+	use futures::io::AsyncWriteExt;
 	use std::collections::HashSet;
+	
+	type MockType = MockWriter<Vec<u8>>;
 
 	struct MockWriter<T> {
 		buff: T,
@@ -70,16 +72,15 @@ mod tests {
 	}
 
 	impl MockWriter<Vec<u8>> {
-		pub fn clear(&mut self) {
-			self.buff.clear();
-		}
-
 		pub fn raw(&self) -> &[u8] {
 			&self.buff
 		}
 
-		pub fn to_str(&self) -> Cow<'_, str> {
-			String::from_utf8_lossy(&self.buff)
+		pub async fn mock_end_of_record(&mut self) -> String {
+			self.end_of_record(true).await.unwrap();
+			let s: String = String::from_utf8_lossy(&self.buff).into();
+			self.buff.clear();
+			s
 		}
 	}
 
@@ -92,7 +93,7 @@ mod tests {
 	impl<T: AsyncWrite + Unpin> RawAsyncEncode for MockWriter<T> {
 		async fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> IoResult<usize> {
 			if self.cnt != 0 {
-				self.buff.write_all(&[b'\t']).await?;
+				self.buff.write_all(b"\t").await?;
 			}
 
 			let scr = match quote_mode {
@@ -108,7 +109,7 @@ mod tests {
 
 			self.buff.write_all(scr.as_bytes()).await?;
 			self.cnt += 1;
-			Ok(scr.as_bytes().len())
+			Ok(scr.len())
 		}
 
 		async fn end_of_record(&mut self, should_flush: bool) -> IoResult<usize> {
@@ -129,14 +130,62 @@ mod tests {
 		}
 	}
 
+	#[tokio::test]
+	async fn write_str_field_test() {
+		let mut mock = MockWriter::default();
+		mock.write_str_field("test", QuoteMode::AutoDetect)
+			.await
+			.unwrap();
+
+		assert_eq!(mock.mock_end_of_record().await, "test\r\n");
+
+		mock.write_str_field("test\ttest", QuoteMode::AutoDetect)
+			.await
+			.unwrap();
+
+		assert_eq!(mock.mock_end_of_record().await, "\"test\ttest\"\r\n");
+	}
+
+	#[tokio::test]
+	async fn write_string_field_test() {
+		let mut mock = MockWriter::default();
+		mock.write_string_field("test".into(), QuoteMode::AutoDetect)
+			.await
+			.unwrap();
+
+		assert_eq!(mock.mock_end_of_record().await, "test\r\n");
+
+		mock.write_string_field("test\ttest".into(), QuoteMode::AutoDetect)
+			.await
+			.unwrap();
+
+		assert_eq!(mock.mock_end_of_record().await, "\"test\ttest\"\r\n");
+	}
+
+	#[tokio::test]
+	async fn write_value_field_test() {
+		let mut mock = MockWriter::default();
+
+		mock.write_value_field(&123, QuoteMode::AutoDetect)
+			.await
+			.unwrap();
+		assert_eq!(mock.mock_end_of_record().await, "123\r\n");
+
+		mock.write_value_field("test", QuoteMode::Quoted)
+			.await
+			.unwrap();
+		assert_eq!(mock.mock_end_of_record().await, "\"test\"\r\n");
+
+		mock.write_value_field("test\ttest", QuoteMode::AutoDetect)
+			.await
+			.unwrap();
+
+		assert_eq!(mock.mock_end_of_record().await, "\"test\ttest\"\r\n");
+	}
+
 	#[test]
 	fn add_quote_test() {
-		type MockType = MockWriter<Vec<u8>>;
-
-		dbg!(MockType::add_quote("te\"st"));
-
 		let actual = MockType::add_quote("test");
-		dbg!(&actual);
 		assert_eq!(MockType::add_quote("test"), "\"test\"");
 		assert_eq!(&MockType::add_quote("test\ttest"), "\"test\ttest\"");
 		assert_eq!(&MockType::add_quote("test\"test"), "\"test\"\"test\"");
