@@ -5,23 +5,35 @@ use std::borrow::Cow;
 pub type StrCow<'a> = Cow<'a, str>;
 
 pub trait RawAsyncEncode {
-	async fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> IoResult<usize>;
-	async fn end_of_record(&mut self, should_flush: bool) -> IoResult<usize>;
+	fn write_str_field(
+		&mut self,
+		value: &str,
+		quote_mode: QuoteMode,
+	) -> impl Future<Output = IoResult<usize>> + Send;
+	fn end_of_record(&mut self, should_flush: bool)
+	-> impl Future<Output = IoResult<usize>> + Send;
 
-	async fn write_string_field(
+	fn write_string_field(
 		&mut self,
 		value: String,
 		quote_mode: QuoteMode,
-	) -> IoResult<usize> {
-		self.write_str_field(&value, quote_mode).await
+	) -> impl Future<Output = IoResult<usize>> + Send
+	where
+		Self: Send,
+	{
+		async move { self.write_str_field(value.as_str(), quote_mode).await }
 	}
-	async fn write_value_field<T: ToString + ?Sized>(
+
+	fn write_value_field<T: ToString + ?Sized>(
 		&mut self,
 		value: &T,
 		quote_mode: QuoteMode,
-	) -> IoResult<usize> {
-		self.write_str_field(value.to_string().as_str(), quote_mode)
-			.await
+	) -> impl Future<Output = IoResult<usize>> + Send
+	where
+		Self: Send,
+	{
+		let bind = value.to_string();
+		async move { self.write_str_field(bind.as_str(), quote_mode).await }
 	}
 	fn add_quote(value: &str) -> String {
 		let mut buf = String::new();
@@ -91,7 +103,7 @@ mod tests {
 		}
 	}
 
-	impl<T: AsyncWrite + Unpin> RawAsyncEncode for MockWriter<T> {
+	impl<T: AsyncWrite + Unpin + std::marker::Send> RawAsyncEncode for MockWriter<T> {
 		async fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> IoResult<usize> {
 			if self.cnt != 0 {
 				self.buff.write_all(b"\t").await?;
