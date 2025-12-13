@@ -37,7 +37,6 @@ where
 mod test {
 	use super::*;
 	use crate::quote_mode::QuoteMode;
-	use mockall::predicate::{always, eq};
 	use std::error::Error as StdError;
 	use std::fmt::{Debug, Display, Formatter};
 	#[test]

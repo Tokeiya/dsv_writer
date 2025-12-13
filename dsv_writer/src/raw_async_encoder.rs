@@ -23,7 +23,19 @@ pub trait RawAsyncEncode {
 		todo!()
 	}
 	fn add_quote(value: &str) -> String {
-		todo!()
+		let mut buf = String::new();
+		buf.push('"');
+
+		for c in value.chars() {
+			if c == '"' {
+				buf.push('"');
+			}
+			buf.push(c);
+		}
+
+		buf.push('"');
+
+		buf
 	}
 	fn cnt(&self) -> usize;
 }
@@ -80,7 +92,7 @@ mod tests {
 	impl<T: AsyncWrite + Unpin> RawAsyncEncode for MockWriter<T> {
 		async fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> IoResult<usize> {
 			if self.cnt != 0 {
-				self.buff.write_all(&[b',']).await?;
+				self.buff.write_all(&[b'\t']).await?;
 			}
 
 			let scr = match quote_mode {
@@ -119,6 +131,14 @@ mod tests {
 
 	#[test]
 	fn add_quote_test() {
-		todo!();
+		type MockType = MockWriter<Vec<u8>>;
+
+		dbg!(MockType::add_quote("te\"st"));
+
+		let actual = MockType::add_quote("test");
+		dbg!(&actual);
+		assert_eq!(MockType::add_quote("test"), "\"test\"");
+		assert_eq!(&MockType::add_quote("test\ttest"), "\"test\ttest\"");
+		assert_eq!(&MockType::add_quote("test\"test"), "\"test\"\"test\"");
 	}
 }
