@@ -1,5 +1,5 @@
 use crate::quote_mode::QuoteMode;
-use futures::io::{AsyncWrite, Result as IoResult};
+use futures::io::Result as IoResult;
 use std::borrow::Cow;
 
 pub type StrCow<'a> = Cow<'a, str>;
@@ -45,6 +45,7 @@ pub trait RawAsyncEncode {
 mod tests {
 	use super::*;
 	use futures::io::AsyncWriteExt;
+	use futures::AsyncWrite;
 	use std::collections::HashSet;
 	
 	type MockType = MockWriter<Vec<u8>>;
