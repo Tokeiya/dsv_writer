@@ -46,7 +46,6 @@ impl<W: AsyncWrite + Unpin + Send> RawAsyncEncode for RawAsyncWriter<W> {
 		};
 
 		if self.cnt > 0 {
-			let mut buf = [0u8; 4];
 			self.writer.write_all(&self.delimiter).await?;
 		}
 

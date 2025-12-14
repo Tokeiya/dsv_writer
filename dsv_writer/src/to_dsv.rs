@@ -48,14 +48,14 @@ mod test {
 	pub struct DummyErr;
 
 	impl Debug for DummyErr {
-		fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-			todo!()
+		fn fmt(&self, _f: &mut Formatter<'_>) -> std::fmt::Result {
+			unreachable!()
 		}
 	}
 
 	impl Display for DummyErr {
-		fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-			todo!()
+		fn fmt(&self, _f: &mut Formatter<'_>) -> std::fmt::Result {
+			unreachable!()
 		}
 	}
 
@@ -67,7 +67,7 @@ mod test {
 		fn to_opt_dsv<T: Encoder>(
 			&self,
 			option: &Self::Opt,
-			writer: &mut T,
+			_writer: &mut T,
 		) -> Result<(), DummyErr> {
 			assert_eq!(*option, 0);
 			Ok(())
@@ -79,18 +79,21 @@ mod test {
 	impl Encoder for DummyEnc {
 		fn write_str_field(
 			&mut self,
-			value: &str,
-			quote_mode: QuoteMode,
+			_value: &str,
+			_quote_mode: QuoteMode,
 		) -> crate::raw_encoder_error::Result<usize> {
-			todo!()
+			unreachable!()
 		}
 
-		fn end_of_record(&mut self, should_flush: bool) -> crate::raw_encoder_error::Result<usize> {
-			todo!()
+		fn end_of_record(
+			&mut self,
+			_should_flush: bool,
+		) -> crate::raw_encoder_error::Result<usize> {
+			unreachable!()
 		}
 
 		fn cnt(&self) -> usize {
-			todo!()
+			unreachable!()
 		}
 	}
 

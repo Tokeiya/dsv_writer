@@ -85,10 +85,6 @@ mod tests {
 	}
 
 	impl MockWriter<Vec<u8>> {
-		pub fn raw(&self) -> &[u8] {
-			&self.buff
-		}
-
 		pub async fn mock_end_of_record(&mut self) -> String {
 			self.end_of_record(true).await.unwrap();
 			let s: String = String::from_utf8_lossy(&self.buff).into();
@@ -198,7 +194,6 @@ mod tests {
 
 	#[test]
 	fn add_quote_test() {
-		let actual = MockType::add_quote("test");
 		assert_eq!(MockType::add_quote("test"), "\"test\"");
 		assert_eq!(&MockType::add_quote("test\ttest"), "\"test\ttest\"");
 		assert_eq!(&MockType::add_quote("test\"test"), "\"test\"\"test\"");
