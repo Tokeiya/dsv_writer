@@ -1,6 +1,6 @@
 [package]
 name = "dsv_writer"
-version = "0.7.1"
+version = "0.7.2"
 edition = "2024"
 publish = ["kellnr"]
 
@@ -11,7 +11,6 @@ tokio = { version = "*", features = ["test-util", "macros", "rt"] }
 
 [dependencies]
 thiserror = "*"
-anyhow = "*"
 predicates-core = "1.0.9"
 common_errors = { version = "*", registry = "kellnr" }
 futures = "*"
