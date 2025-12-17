@@ -27,7 +27,7 @@ mod tests {
 	use crate::raw_encoder::Encoder;
 	use mockall::mock;
 	use mockall::predicate;
-	
+
 	mock! {
 		Writer{}
 
@@ -36,6 +36,8 @@ mod tests {
 			fn end_of_record(&mut self, should_flush: bool) -> crate::raw_encoder_error::Result<usize>;
 			fn cnt(&self) -> usize ;
 		}
+
+
 
 	}
 
