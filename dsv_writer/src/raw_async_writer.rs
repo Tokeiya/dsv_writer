@@ -32,14 +32,14 @@ impl<W> RawAsyncWriter<W> {
 		})
 	}
 
-	fn should_quoting(&self, value: &str) -> bool {
+	fn should_quote(&self, value: &str) -> bool {
 		value.chars().any(|c| self.set.contains(&c))
 	}
 }
 
 impl<W: AsyncWrite + Unpin + Send> RawAsyncEncode for RawAsyncWriter<W> {
 	async fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> IoResult<usize> {
-		let tmp: Cow<str> = if quote_mode == QuoteMode::Quoted || self.should_quoting(value) {
+		let tmp: Cow<str> = if quote_mode == QuoteMode::Quoted || self.should_quote(value) {
 			Self::add_quote(value).into()
 		} else {
 			value.into()
@@ -111,12 +111,12 @@ mod test {
 	fn should_quoting_test() {
 		let mut binding = Vec::<u8>::new();
 		let fixture = RawAsyncWriter::try_new(&mut binding, ',').unwrap();
-		assert!(!fixture.should_quoting("hello"));
-		assert!(fixture.should_quoting("hel\"lo"));
-		assert!(fixture.should_quoting("hello,world"));
-		assert!(fixture.should_quoting("\r"));
-		assert!(fixture.should_quoting("\n"));
-		assert!(!fixture.should_quoting("\t"));
+		assert!(!fixture.should_quote("hello"));
+		assert!(fixture.should_quote("hel\"lo"));
+		assert!(fixture.should_quote("hello,world"));
+		assert!(fixture.should_quote("\r"));
+		assert!(fixture.should_quote("\n"));
+		assert!(!fixture.should_quote("\t"));
 	}
 
 	#[tokio::test]
