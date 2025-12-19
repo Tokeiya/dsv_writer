@@ -1,3 +1,6 @@
+mod avx_sse;
+pub mod should_quote_datum;
+
 use std::pin::Pin;
 
 pub trait AsyncFoo {
