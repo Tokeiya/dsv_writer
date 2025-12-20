@@ -38,8 +38,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "common_errors"
 version = "0.3.0"
-source = "sparse+http://clear:8000/api/v1/crates/"
-checksum = "7729cdc6a92c1f45b62242cf10ff3ffa39d5289ae82a5ef0b02ee5b2980ff02c"
+source = "git+https://github.com/Tokeiya/common_errors?branch=master#1b7f84ba2c88ba55c64efaa734366863a4903084"
 dependencies = [
  "thiserror",
 ]

@@ -13,6 +13,6 @@ predicates = "*"
 [dependencies]
 thiserror = "*"
 predicates-core = "1.0.9"
-common_errors = { version = "*", registry = "kellnr" }
+common_errors = { git = "https://github.com/Tokeiya/common_errors", branch = "master" }
 futures = "*"
 
