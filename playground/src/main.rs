@@ -1,4 +1,7 @@
-mod avx_sse;
+mod cmp_mask;
+mod cmpestri;
+mod scalar;
+mod shared;
 pub mod should_quote_datum;
 
 use std::pin::Pin;
