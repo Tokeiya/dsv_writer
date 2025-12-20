@@ -1,20 +1,13 @@
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::*;
 
+use crate::scalar::scalar;
+use crate::shared::check_delimiter;
 use crate::should_quote_datum::{ShouldQuoteDatum, ShouldQuoteResult};
 use anyhow::{Result as AnyResult, anyhow};
 
 pub fn should_quoted(target: &str, delimiter: char) -> ShouldQuoteResult {
-	if !delimiter.is_ascii()
-		|| delimiter == '\r'
-		|| delimiter == '\n'
-		|| delimiter == '"'
-		|| delimiter == '\0'
-	{
-		return Err(anyhow!(
-			"delimiter must be ascii and not '\\r', '\\n' or '\"'"
-		));
-	}
+	check_delimiter(delimiter)?;
 
 	let esc: i32 = (delimiter as i32) | ((b'\r' as i32) << 8) | ((b'\n' as i32) << 16);
 
@@ -54,23 +47,6 @@ fn simd(target: __m128i, double_quote: __m128i, escape_chars: __m128i) -> Should
 	}
 
 	ShouldQuoteDatum::new(false, false)
-}
-
-fn scalar(target: &[u8], delimiter: u8) -> ShouldQuoteDatum {
-	let mut should_quote = false;
-	let mut contain_dq = false;
-
-	for elem in target {
-		should_quote |= *elem == b'\r' || *elem == b'\n' || *elem == delimiter;
-
-		if *elem == b'"' {
-			contain_dq = true;
-			should_quote = true;
-			break;
-		}
-	}
-
-	ShouldQuoteDatum::new(should_quote, contain_dq)
 }
 
 #[cfg(test)]
