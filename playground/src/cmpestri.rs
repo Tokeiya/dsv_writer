@@ -14,18 +14,25 @@ pub fn should_quoted(target: &str, delimiter: char) -> ShouldQuoteResult {
 
 	let double_quote_vec: __m128i = unsafe { _mm_set1_epi8(b'"' as i8) };
 
-	let mut cursor = target.as_bytes();
+	//let mut cursor = target.as_bytes();
+	let mut ptr = target.as_ptr();
+	let mut cnt = target.len();
 
 	let mut result = ShouldQuoteDatum::new(false, false);
-	while cursor.len() >= 16 {
-		let chunk = unsafe { _mm_loadu_si128(cursor.as_ptr() as *const __m128i) };
-		cursor = &cursor[16..];
+	while cnt >= 16 {
+		let chunk = unsafe { _mm_loadu_si128(ptr as *const __m128i) };
+		//cursor = &cursor[16..];
+		ptr = unsafe { ptr.add(16) };
+		cnt -= 16;
+
 		result |= simd(chunk, double_quote_vec, escape_vec);
 
 		if result.double_quote() {
 			return Ok(result);
 		}
 	}
+
+	let cursor = unsafe { std::slice::from_raw_parts(ptr, cnt) };
 
 	result |= scalar(cursor, delimiter as u8);
 
