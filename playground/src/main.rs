@@ -9,6 +9,7 @@ mod cmpestri;
 mod scalar;
 mod shared;
 pub mod should_quote_datum;
+mod sample_gen;
 
 const TXT: &str = "Have a nice day!";
 fn main() {
