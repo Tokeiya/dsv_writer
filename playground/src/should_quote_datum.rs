@@ -1,4 +1,4 @@
-use anyhow::{Result as AnyResult, anyhow};
+use anyhow::Result as AnyResult;
 use std::ops::BitOrAssign;
 
 #[derive(Debug)]

@@ -1,6 +1,6 @@
 use std::arch::x86_64::{
-	__m128i, _mm_cmpeq_epi8, _mm_loadu_epi8, _mm_loadu_si128, _mm_movemask_epi8, _mm_set_epi8,
-	_mm_set1_epi8,
+	__m128i, _mm_cmpeq_epi8, _mm_loadu_epi8, _mm_movemask_epi8, _mm_set1_epi8,
+	_mm_set_epi8,
 };
 use std::slice;
 

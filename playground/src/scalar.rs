@@ -26,9 +26,8 @@ pub fn scalar(target: &[u8], delimiter: u8) -> ShouldQuoteDatum {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
 	use crate::cmpestri::should_quoted;
-
+	
 	#[test]
 	fn should_quote_test() {
 		let result = should_quoted("test", '\n');
