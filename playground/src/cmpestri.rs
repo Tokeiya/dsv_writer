@@ -13,7 +13,7 @@ pub fn should_quoted(target: &str, delimiter: char) -> ShouldQuoteResult {
 
 	let escape_vec: __m128i = unsafe { _mm_cvtsi32_si128(esc) };
 
-	let double_quote_vec: __m128i = unsafe { _mm_cvtsi32_si128(b'"' as i32) };
+	let double_quote_vec: __m128i = unsafe { _mm_set1_epi8(b'"' as i8) };
 
 	let mut cursor = target.as_bytes();
 
