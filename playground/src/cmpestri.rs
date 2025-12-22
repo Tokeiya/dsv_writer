@@ -4,7 +4,6 @@ use std::arch::x86_64::*;
 use crate::scalar::scalar;
 use crate::shared::check_delimiter;
 use crate::should_quote_datum::{ShouldQuoteDatum, ShouldQuoteResult};
-use anyhow::{Result as AnyResult, anyhow};
 
 pub fn should_quoted(target: &str, delimiter: char) -> ShouldQuoteResult {
 	check_delimiter(delimiter)?;
@@ -52,7 +51,7 @@ fn simd(target: __m128i, double_quote: __m128i, escape_chars: __m128i) -> Should
 #[cfg(test)]
 mod tests {
 	use super::*;
-
+	
 	#[test]
 	fn should_quote_test() {
 		let result = should_quoted("test", '\n');

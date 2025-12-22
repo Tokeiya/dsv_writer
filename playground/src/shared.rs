@@ -1,4 +1,4 @@
-use anyhow::{Result as AnyResult, anyhow};
+use anyhow::{anyhow, Result as AnyResult};
 pub fn check_delimiter(delimiter: char) -> AnyResult<()> {
 	if !delimiter.is_ascii()
 		|| delimiter == '\r'
@@ -15,6 +15,4 @@ pub fn check_delimiter(delimiter: char) -> AnyResult<()> {
 }
 
 #[cfg(test)]
-mod tests {
-	use super::*;
-}
+mod tests {}
