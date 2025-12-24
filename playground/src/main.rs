@@ -1,38 +1,23 @@
-use std::arch::x86_64::{
-	__m128i, _mm_cmpeq_epi8, _mm_loadu_epi8, _mm_movemask_epi8, _mm_set1_epi8,
-	_mm_set_epi8,
-};
-use std::slice;
+use playground::sample_generator;
 
-mod cmp_mask;
-mod cmpestri;
-mod scalar;
-mod shared;
-pub mod should_quote_datum;
-mod sample_gen;
+use std::arch::x86_64::{
+	__m128i, _mm_cmpeq_epi8, _mm_loadu_epi8, _mm_loadu_si128, _mm_movemask_epi8, _mm_set_epi8,
+	_mm_set1_epi8,
+};
+use std::collections::HashSet;
+use std::slice;
 
 const TXT: &str = "Have a nice day!";
 fn main() {
-	fn f(value: u16) -> String {
-		let mut result = String::new();
-		for i in 0..16 {
-			result.push(if value & (1 << i) != 0 { '1' } else { '0' });
+	let vec = sample_generator::gen_sample(114514, 2_000_000, 30.0, 5.0, 0.1, 0.1);
 
-			if i % 4 == 3 {
-				result.push('_');
-			}
-		}
-		result
+	for elem in vec.iter() {
+		println!("-------------------------");
+		println!("{}", elem);
+		println!("-------------------------");
 	}
 
-	let cursor = TXT.as_bytes();
-
-	let chunk = unsafe { _mm_loadu_epi8(cursor.as_ptr() as *const i8) };
-	let mask = unsafe { _mm_set1_epi8(b'a' as i8) };
-
-	let result = unsafe { _mm_cmpeq_epi8(chunk, mask) };
-	let mask_result = unsafe { _mm_movemask_epi8(result) } as u16;
-	println!("{}:{}", f(mask_result), mask_result);
+	println!("{}", vec.iter().map(|s| s.len()).sum::<usize>())
 }
 
 fn tmp() {
