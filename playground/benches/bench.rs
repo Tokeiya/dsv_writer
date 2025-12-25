@@ -39,7 +39,7 @@ fn cmp_string(sample: &[String]) {
 }
 
 pub fn benchmark(c: &mut Criterion) {
-	let sample = playground::sample_generator::gen_sample(42, 250_000_0000, 20.0, 3.0, 0.1, 0.1);
+	let sample = playground::sample_generator::gen_sample(42, 25_000_0000, 20.0, 3.0, 0.1, 0.1);
 	c.bench_function("scalar", |b| b.iter(|| scalar(sample.as_slice())));
 	c.bench_function("cmp_mask", |b| {
 		b.iter(|| unsafe { cmp_mask(sample.as_slice()) })
