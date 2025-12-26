@@ -2,18 +2,18 @@
 <project version="4">
   <component name="RemoteTargetsManager">
     <targets>
-      <target name="rust_rover@black:22" type="ssh/sftp" uuid="f2641d37-9bdb-4449-9884-b11c8248eb1e">
+      <target name="rust_rover@black:22" type="ssh/sftp" uuid="c1040aac-e266-45dd-af79-4d224449897b">
         <config>
           <option name="projectRootOnTarget" value="/home/rust_rover/dsv_writer" />
-          <option name="serverName" value="rust_rover@black:22 agent" />
+          <option name="serverName" value="rust_rover@black:22 key" />
           <option name="useRsync" value="true" />
         </config>
         <ContributedStateBase type="RsLanguageRuntime">
           <config>
             <option name="cargoPath" value="/home/rust_rover/.cargo/bin/cargo" />
-            <option name="cargoVersion" value="1.92.0-nightly (966f94733 2025-09-16)" />
+            <option name="cargoVersion" value="1.92.0 (344c4567c 2025-10-21)" />
             <option name="rustcPath" value="/home/rust_rover/.cargo/bin/rustc" />
-            <option name="rustcVersion" value="1.92.0-nightly (dd7fda570 2025-09-20)" />
+            <option name="rustcVersion" value="1.92.0 (ded5c06cf 2025-12-08)" />
           </config>
         </ContributedStateBase>
       </target>
