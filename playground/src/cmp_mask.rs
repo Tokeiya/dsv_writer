@@ -2,8 +2,7 @@ use crate::scalar::scalar;
 use crate::shared::check_delimiter;
 use crate::should_quote_datum::{ShouldQuoteDatum, ShouldQuoteResult};
 use std::arch::x86_64::{
-	__m128i, _mm_cmpeq_epi8, _mm_loadu_si128, _mm_or_si128,
-	_mm_set1_epi8, _mm_test_all_zeros,
+	__m128i, _mm_cmpeq_epi8, _mm_loadu_si128, _mm_or_si128, _mm_set1_epi8, _mm_test_all_zeros,
 };
 
 #[target_feature(enable = "sse4.1")]
@@ -19,7 +18,7 @@ pub fn should_quote(target: &str, delimiter: char) -> ShouldQuoteResult {
 	let carriage_return_128 = _mm_set1_epi8(b'\r' as i8);
 
 	while cnt >= 16 {
-		let chunk = unsafe{_mm_loadu_si128(cursor as *const __m128i)};
+		let chunk = unsafe { _mm_loadu_si128(cursor as *const __m128i) };
 
 		let dq = _mm_cmpeq_epi8(chunk, dq_128);
 		if _mm_test_all_zeros(dq, dq) == 0 {
@@ -39,17 +38,17 @@ pub fn should_quote(target: &str, delimiter: char) -> ShouldQuoteResult {
 			return Ok(ShouldQuoteDatum::new(true, false));
 		}
 
-		cursor = unsafe{cursor.add(16)};
+		cursor = unsafe { cursor.add(16) };
 		cnt -= 16;
 	}
-	let cursor =unsafe{ std::slice::from_raw_parts(cursor, cnt)};
+	let cursor = unsafe { std::slice::from_raw_parts(cursor, cnt) };
 	Ok(scalar(cursor, delimiter as u8))
 }
 
 #[cfg(test)]
 mod test {
 	use super::*;
-	
+
 	const TXT: &str = "0123456789abcdef";
 
 	#[test]
