@@ -15,7 +15,7 @@ const TXT: &str = "Have a nice day!";
 fn main() {
 	let vec = sample_generator::gen_sample(114514, 2_000_000, 30.0, 5.0, 0.1, 0.1);
 
-	for elem in vec.iter() {
+	for elem in vec.iter().take(10) {
 		println!("-------------------------");
 		println!("{}", elem);
 		println!("-------------------------");
