@@ -7,3 +7,6 @@ pub mod sample_generator;
 pub mod scalar;
 pub mod shared;
 pub mod should_quote_datum;
+
+#[cfg(target_arch = "aarch64")]
+pub mod neon;
