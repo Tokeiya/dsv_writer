@@ -58,7 +58,7 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn should_quote_test() {
+	unsafe fn should_quote_test() {
 		// let result = should_quote("test", '\n');
 		// assert!(result.is_err());
 		//
