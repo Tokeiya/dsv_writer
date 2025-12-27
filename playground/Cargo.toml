@@ -17,5 +17,11 @@ rand_pcg = "*"
 
 
 [[bench]]
-name = "bench"
+name = "x86_64_bench"
+path = "benches/x86_64_bench.rs"
+harness = false
+
+[[bench]]
+name = "neon_bench"
+path = "benches/neon_bench.rs"
 harness = false
