@@ -5,6 +5,7 @@ use std::arch::x86_64::{
 	__m128i, _mm_cmpeq_epi8, _mm_loadu_si128, _mm_or_si128, _mm_set1_epi8, _mm_test_all_zeros,
 };
 
+/// # Safety
 #[target_feature(enable = "sse4.1")]
 pub fn should_quote(target: &str, delimiter: char) -> ShouldQuoteResult {
 	check_delimiter(delimiter)?;

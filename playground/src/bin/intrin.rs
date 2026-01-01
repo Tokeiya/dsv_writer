@@ -1,80 +1,153 @@
-// #[cfg(target_arch = "x86_64")]
-// use std::arch::x86_64::*;
+// use playground::scalar::scalar;
+// use playground::shared::check_delimiter;
+// use playground::should_quote_datum::{ShouldQuoteDatum, ShouldQuoteResult};
+// use std::arch::x86_64::{
+// 	__m128i, _mm_cmpeq_epi8, _mm_loadu_si128, _mm_or_si128, _mm_popcnt_epi8, _mm_set1_epi8,
+// 	_mm_storeu_si128, _mm_test_all_zeros,
+// };
 //
-// // SIMD命令を使うため、ターゲット機能のチェックかunsafeブロックが必要です
-// // 実際には #[target_feature(enable = "sse4.2")] をつけた関数内で呼ぶのが一般的です
-// #[target_feature(enable = "sse4.2")]
-// unsafe fn find_delimiter_index() -> i32 {
-// 	// xmm1: パターン (",\r\n")
-// 	// 実際には16バイトのアライメントやパディングを考慮する必要がありますが、
-// 	// loadu (unaligned load) を使うのでu8スライスから直接読み込めます。
-// 	let pattern = b",\r\n";
-// 	let input = b"12345678901234,";
+// use playground::quote_masks::QuoteMasks;
 //
-// 	// データのロード (__m128i型へ)
-// 	// _mm_loadu_si128 はアライメントされていないメモリからのロードを許容します
-// 	// 実際の運用ではバッファの終端処理（オーバーリード）に注意が必要です
-// 	let a = _mm_loadu_si128(pattern.as_ptr() as *const __m128i);
-// 	let b = _mm_loadu_si128(input.as_ptr() as *const __m128i);
-//
-// 	// 長さの指定 (Explicit Length)
-// 	let la = pattern.len() as i32; // 3
-// 	let lb = input.len() as i32; // 5
-//
-// 	// imm8 (制御バイト) の構築
-// 	// bit 1:0 (Format) : 00 (Unsigned Byte)
-// 	// bit 3:2 (Mode)   : 00 (Equal Any) -> strcspn相当
-// 	// bit 5:4 (Polarity): 00 (Positive)
-// 	// bit 6   (Index)  : 0  (LSB: 最初にマッチしたインデックス)
-// 	const CONTROL: i32 = 0b00_00_00_00; // 0x00
-//
-// 	// 命令実行: pcmpestri xmm1, xmm2, imm8
-// 	_mm_cmpestri(a, la, b, lb, CONTROL)
+// #[inline(always)]
+// pub fn is_contain(target: __m128i, mask: __m128i) -> bool {
+// 	let dq = unsafe { _mm_cmpeq_epi8(target, mask) };
+// 	(unsafe { _mm_test_all_zeros(dq, dq) } == 0)
 // }
 //
-// #[target_feature(enable = "sse4.2")]
-// unsafe fn analyze_chunk_mask() -> i32 {
-// 	// 1. 検索パターン (",\r\n")
-// 	// ※実際には外で定義して使い回すのが良いです
-// 	let pattern_bytes = b"\",\r\n";
-// 	let input_chunk = b",1245678901234,";
-// 	// 比較対象（入力データの16バイト）
-// 	// loadu相当の処理（input_chunkは16バイト以上ある前提）
-// 	let a = _mm_loadu_si128(pattern_bytes.as_ptr() as *const __m128i);
-// 	let b = _mm_loadu_si128(input_chunk.as_ptr() as *const __m128i);
+// #[inline(always)]
+// pub fn raw_copy(scr: __m128i, target: &mut Vec<u8>) {
+// 	if target.capacity() - target.len() < 16 {
+// 		target.reserve(1024);
+// 	}
 //
-// 	let la = pattern_bytes.len() as i32; // 4
-// 	let lb = 16; // 入力はフルサイズ16バイトと仮定
+// 	let ptr = target.as_mut_ptr();
 //
-// 	// 2. imm8 (制御バイト) の設定
-// 	// bit 1:0 (Format)   : 00 (Unsigned Byte)
-// 	// bit 3:2 (Mode)     : 00 (Equal Any) -> いずれかの文字に一致
-// 	// bit 5:4 (Polarity) : 00 (Positive)  -> 一致したらビットを立てる
-// 	// bit 6   (Output)   : 0  (Bit Mask)  -> 結果をビット列としてXMM0の下位に詰める
-// 	//                      ※ここを1にするとByte Mask（00 or FFの配列）になります
-// 	const CONTROL: i32 = 0b00_00_00_00;
-//
-// 	// 3. 命令実行: pcmpestrm
-// 	// 戻り値は __m128i 型 (XMM0レジスタの内容)
-// 	let mask_xmm = _mm_cmpestrm(a, la, b, lb, CONTROL);
-//
-// 	// 4. SIMDレジスタから汎用レジスタへ取り出し
-// 	// XMM0の第0要素(低位32ビット)をi32として取り出します
-// 	let mask = _mm_cvtsi128_si32(mask_xmm);
-//
-// 	mask
-// }
-//
-// fn main() {
-// 	if is_x86_feature_detected!("sse4.2") {
-// 		let idx = unsafe { find_delimiter_index() };
-// 		println!("Index found: {}", idx); // 出力: 1
-//
-// 		let idx = unsafe { analyze_chunk_mask() };
-// 		println!("Mask:{:b}", idx as u16);
-// 	} else {
-// 		println!("SSE4.2 not supported on this CPU.");
+// 	unsafe {
+// 		let dst = ptr.add(target.len());
+// 		_mm_storeu_si128(dst as *mut __m128i, scr);
+// 		target.set_len(target.len() + 16);
 // 	}
 // }
-
+//
+// #[inline(always)]
+// pub fn escape_and_add(scr: __m128i, dq: __m128i, target: &mut Vec<u8>) {
+// 	let a = _mm_popcnt_epi8(scr);
+// }
+//
+// #[inline(always)]
+// pub fn should_quote_impl(target: __m128i, quote_masks: QuoteMasks) -> ShouldQuoteResult {
+// 	if is_contain(target, quote_masks.dq) {
+// 		return Ok(ShouldQuoteDatum::new(true, true));
+// 	}
+//
+// 	let delim_result = unsafe { _mm_cmpeq_epi8(target, quote_masks.delim) };
+// 	let new_line_result = unsafe { _mm_cmpeq_epi8(target, quote_masks.nl) };
+// 	let carriage_return_result = unsafe { _mm_cmpeq_epi8(target, quote_masks.cr) };
+//
+// 	let aggregation = unsafe {
+// 		_mm_or_si128(
+// 			delim_result,
+// 			_mm_or_si128(new_line_result, carriage_return_result),
+// 		)
+// 	};
+// 	if unsafe { _mm_test_all_zeros(aggregation, aggregation) == 0 } {
+// 		Ok(ShouldQuoteDatum::new(true, false))
+// 	} else {
+// 		Ok(ShouldQuoteDatum::new(false, false))
+// 	}
+// }
+//
+// /// # Safety
+// #[target_feature(enable = "sse4.1")]
+// pub fn should_quote(target: &str, delimiter: char) -> ShouldQuoteResult {
+// 	check_delimiter(delimiter)?;
+//
+// 	let mut cnt = target.len();
+// 	let mut cursor = target.as_ptr();
+//
+// 	let quote_masks = QuoteMasks::new(delimiter);
+//
+// 	while cnt >= 16 {
+// 		let chunk = unsafe { _mm_loadu_si128(cursor as *const __m128i) };
+//
+// 		let result = should_quote_impl(chunk, quote_masks)?;
+//
+// 		if result.should_quote() || result.double_quote() {
+// 			return Ok(result);
+// 		}
+//
+// 		cursor = unsafe { cursor.add(16) };
+// 		cnt -= 16;
+// 	}
+// 	let cursor = unsafe { std::slice::from_raw_parts(cursor, cnt) };
+// 	Ok(scalar(cursor, delimiter as u8))
+// }
+//
+// fn main() {}
+//
+// #[cfg(test)]
+// mod test {
+// 	use super::*;
+//
+// 	#[test]
+// 	fn should_quote_test() {
+// 		unsafe {
+// 			let result = playground::cmp_mask::should_quote("test", '\n');
+// 			assert!(result.is_err());
+//
+// 			let result = playground::cmp_mask::should_quote("test", '"');
+// 			assert!(result.is_err());
+//
+// 			let result = playground::cmp_mask::should_quote("test", '\r');
+// 			assert!(result.is_err());
+//
+// 			let result = playground::cmp_mask::should_quote("test", '\t').unwrap();
+// 			assert!(!result.should_quote());
+// 			assert!(!result.double_quote());
+//
+// 			let result = playground::cmp_mask::should_quote("test\"test", '\t').unwrap();
+// 			assert!(result.should_quote());
+// 			assert!(result.double_quote());
+//
+// 			let result = playground::cmp_mask::should_quote("test\ttest", '\t').unwrap();
+// 			assert!(result.should_quote());
+// 			assert!(!result.double_quote());
+//
+// 			let result = playground::cmp_mask::should_quote("test\rtest", '\t').unwrap();
+// 			assert!(result.should_quote());
+// 			assert!(!result.double_quote());
+//
+// 			let result = playground::cmp_mask::should_quote("test\ntest", '\t').unwrap();
+// 			assert!(result.should_quote());
+// 			assert!(!result.double_quote());
+//
+// 			let result = playground::cmp_mask::should_quote("test\ntest\ntest", '\t').unwrap();
+// 			assert!(result.should_quote());
+//
+// 			let result = playground::cmp_mask::should_quote(
+// 				"それほどジェスチャー必須でない場面でもサービスするDEEP DIVE理事🦀",
+// 				'\t',
+// 			)
+// 			.unwrap();
+// 			assert!(!result.should_quote());
+// 			assert!(!result.double_quote());
+//
+// 			let result = playground::cmp_mask::should_quote(
+// 				"それほどジェスチャー必須でない場面でも\"サービスするDEEP DIVE理事🦀",
+// 				'\t',
+// 			)
+// 			.unwrap();
+// 			assert!(result.should_quote());
+// 			assert!(result.double_quote());
+//
+// 			let result = playground::cmp_mask::should_quote(
+// 				"それほどジェスチャー必須でない場面でも\tサービスするDEEP DIVE理事🦀",
+// 				'\t',
+// 			)
+// 			.unwrap();
+// 			assert!(result.should_quote());
+// 			assert!(!result.double_quote());
+// 		}
+// 	}
+// }
 fn main() {}

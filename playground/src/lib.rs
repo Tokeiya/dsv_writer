@@ -10,3 +10,6 @@ pub mod should_quote_datum;
 
 #[cfg(target_arch = "aarch64")]
 pub mod neon;
+
+#[cfg(target_arch = "x86_64")]
+pub mod quote_masks;
