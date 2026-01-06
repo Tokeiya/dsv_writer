@@ -1,8 +1,11 @@
-pub mod escape_outcome;
-pub mod quote_mode;
-pub mod raw_async_encoder;
-pub mod raw_async_writer;
-pub mod raw_encoder;
-pub mod raw_encoder_error;
-pub mod raw_writer;
-pub mod to_dsv;
+mod escape_outcome;
+mod quote_mode;
+mod raw_async_encoder;
+mod raw_async_writer;
+mod raw_encoder;
+mod raw_encoder_error;
+mod raw_writer;
+mod to_dsv;
+
+pub use crate::raw_writer::RawWriter;
+pub use crate::to_dsv::ToDsv;
