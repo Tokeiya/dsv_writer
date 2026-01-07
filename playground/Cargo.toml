@@ -3,5 +3,25 @@ name = "playground"
 version = "0.1.0"
 edition = "2024"
 
+
+[dev-dependencies]
+criterion = "*"
+
 [dependencies]
 dsv_writer = { path = "../dsv_writer" }
+anyhow = "*"
+rand_xoshiro = "*"
+rand_distr = "*"
+rand = "*"
+rand_pcg = "*"
+
+
+[[bench]]
+name = "x86_64_bench"
+path = "benches/x86_64_bench.rs"
+harness = false
+
+[[bench]]
+name = "neon_bench"
+path = "benches/neon_bench.rs"
+harness = false
