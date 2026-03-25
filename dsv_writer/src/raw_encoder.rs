@@ -17,14 +17,6 @@ pub trait Encoder {
 		self.write_str_field(value.to_string().as_str(), quote_mode)
 	}
 	fn end_of_record(&mut self, should_flush: bool) -> Result<usize>;
-	fn add_quote(&self, value: Cow<'_, str>) -> String {
-		let mut buff = String::new();
-
-		buff.push('"');
-		buff.push_str(&value.replace('"', r#""""#));
-		buff.push('"');
-		buff
-	}
 
 	fn cnt(&self) -> usize;
 }
@@ -32,106 +24,41 @@ pub trait Encoder {
 #[cfg(test)]
 mod tests {
 	use crate::quote_mode::QuoteMode;
-	use crate::raw_encoder::{Encoder, StrCow};
-	use std::collections::HashSet;
-	use std::sync::LazyLock;
+	use crate::raw_encoder::Encoder;
+	use mockall::mock;
+	use mockall::predicate;
 
-	static DICT: LazyLock<HashSet<char>> = LazyLock::new(|| {
-		let mut set = HashSet::new();
-		set.insert('"');
-		set.insert('\n');
-		set.insert('\r');
-		set.insert('\t');
-		set.insert(',');
-		set
-	});
+	mock! {
+		Writer{}
 
-	pub struct Writer {
-		pub buff: Vec<Vec<String>>,
-	}
-
-	impl Default for Writer {
-		fn default() -> Self {
-			Self { buff: vec![vec![]] }
-		}
-	}
-
-	impl Encoder for Writer {
-		fn write_str_field(
-			&mut self,
-			value: &str,
-			quote_mode: QuoteMode,
-		) -> crate::raw_encoder_error::Result<usize> {
-			let tmp: StrCow = if quote_mode == QuoteMode::Quoted || self.should_quoting(value) {
-				self.add_quote(value.into()).into()
-			} else {
-				value.into()
-			};
-
-			self.buff.last_mut().unwrap().push(tmp.into());
-			Ok(self.buff.last().unwrap().len())
+		impl Encoder for Writer{
+			fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> crate::raw_encoder_error::Result<usize>;
+			fn end_of_record(&mut self, should_flush: bool) -> crate::raw_encoder_error::Result<usize>;
+			fn cnt(&self) -> usize ;
 		}
 
-		fn end_of_record(&mut self, _: bool) -> crate::raw_encoder_error::Result<usize> {
-			unreachable!()
-		}
 
-		fn cnt(&self) -> usize {
-			unreachable!()
-		}
-	}
 
-	impl Writer {
-		fn should_quoting(&self, value: &str) -> bool {
-			value.chars().any(|c| DICT.contains(&c))
-		}
-	}
-
-	#[test]
-	fn write_string_field_test() {
-		let mut writer = Writer::default();
-		let cnt = writer
-			.write_string_field("test".to_string(), QuoteMode::AutoDetect)
-			.unwrap();
-		assert_eq!(cnt, 1);
-		assert_eq!(writer.buff.last().unwrap()[0], "test");
-
-		let cnt = writer
-			.write_string_field("test,test".to_string(), QuoteMode::AutoDetect)
-			.unwrap();
-		assert_eq!(cnt, 2);
-		assert_eq!(writer.buff.last().unwrap()[1], r#""test,test""#);
-
-		let cnt = writer
-			.write_string_field("hoge".to_string(), QuoteMode::Quoted)
-			.unwrap();
-		assert_eq!(cnt, 3);
-		assert_eq!(writer.buff.last().unwrap()[2], r#""hoge""#);
 	}
 
 	#[test]
 	fn write_value_field_test() {
-		let mut writer = Writer::default();
-		let cnt = writer
-			.write_value_field(&100, QuoteMode::AutoDetect)
-			.unwrap();
-		assert_eq!(cnt, 1);
-		assert_eq!(writer.buff.last().unwrap()[0], "100");
+		let mut mock = MockWriter::new();
+		mock.expect_write_str_field()
+			.with(predicate::eq("42"), predicate::eq(QuoteMode::Quoted))
+			.returning(|_, _| Ok(42));
 
-		let cnt = writer.write_value_field(&42, QuoteMode::Quoted).unwrap();
-		assert_eq!(cnt, 2);
-		assert_eq!(writer.buff.last().unwrap()[1], r#""42""#);
+		mock.write_value_field(&42, QuoteMode::Quoted).unwrap();
 	}
+
 	#[test]
-	fn add_quote_test() {
-		let writer = Writer::default();
-		let quoted = writer.add_quote("test".into());
-		assert_eq!(quoted, r#""test""#);
+	fn write_string_test() {
+		let mut mock = MockWriter::new();
+		mock.expect_write_str_field()
+			.with(predicate::eq("hello"), predicate::eq(QuoteMode::AutoDetect))
+			.returning(|_, _| Ok(42));
 
-		let quoted = writer.add_quote(r#""te,st""#.into());
-		assert_eq!(quoted, r####""""te,st""""####);
-
-		let quoted = writer.add_quote(r#"te"st"#.into());
-		assert_eq!(quoted, r#""te""st""#);
+		mock.write_string_field("hello".to_string(), QuoteMode::AutoDetect)
+			.unwrap();
 	}
 }
