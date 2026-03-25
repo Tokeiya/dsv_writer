@@ -7,7 +7,6 @@ publish = ["kellnr"]
 [dev-dependencies]
 mockall = "*"
 tokio = { version = "*", features = ["test-util", "macros", "rt"] }
-predicates = "*"
 
 
 [dependencies]
