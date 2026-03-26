@@ -69,6 +69,8 @@ impl<W: Write> Encoder for RawWriter<W> {
 			self.writer.flush()?;
 		}
 
+		self.buffer.clear();
+
 		Ok(c)
 	}
 
