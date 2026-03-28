@@ -190,7 +190,7 @@ mod test {
 
 	#[tokio::test]
 	async fn end_of_record_test() {
-		async fn f(input: &[(&str, QuoteMode)], expected: &str) {
+		async fn f(input: &[(&str, QuoteMode)], expected: &str, new_line: NewLineMode) {
 			let mut binding = Vec::<u8>::new();
 			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',').unwrap();
 
@@ -198,10 +198,7 @@ mod test {
 				fixture.write_str_field(s, *q).await.unwrap();
 			}
 
-			let act = fixture
-				.end_of_record(NewLineMode::CrLf, true)
-				.await
-				.unwrap();
+			let act = fixture.end_of_record(new_line, true).await.unwrap();
 			assert_eq!(binding, expected.as_bytes());
 			assert_eq!(act, input.len());
 		}
@@ -209,6 +206,21 @@ mod test {
 		f(
 			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
 			"\"hello\",world\r\n",
+			NewLineMode::CrLf,
+		)
+		.await;
+
+		f(
+			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
+			"\"hello\",world\n",
+			NewLineMode::Lf,
+		)
+		.await;
+
+		f(
+			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
+			"\"hello\",world\r",
+			NewLineMode::Cr,
 		)
 		.await;
 	}

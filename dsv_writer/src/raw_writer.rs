@@ -190,6 +190,58 @@ mod test {
 
 		let act = fixture.end_of_record(NewLineMode::CrLf, true).unwrap();
 		assert_eq!(act, 2);
+
+		let mut mock = MockWriter::new();
+		let mut seq = mockall::Sequence::new();
+
+		mock.expect_write()
+			.once()
+			.in_sequence(&mut seq)
+			.returning(|x| Ok(x.len()))
+			.with(str_eq("hello,world\n"))
+			.returning(|x| Ok(x.len()));
+
+		mock.expect_flush()
+			.once()
+			.returning(|| Ok(()))
+			.in_sequence(&mut seq);
+
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		fixture
+			.write_str_field("hello", QuoteMode::AutoDetect)
+			.unwrap();
+		fixture
+			.write_str_field("world", QuoteMode::AutoDetect)
+			.unwrap();
+
+		let act = fixture.end_of_record(NewLineMode::Lf, true).unwrap();
+		assert_eq!(act, 2);
+
+		let mut mock = MockWriter::new();
+		let mut seq = mockall::Sequence::new();
+
+		mock.expect_write()
+			.once()
+			.in_sequence(&mut seq)
+			.returning(|x| Ok(x.len()))
+			.with(str_eq("hello,world\r"))
+			.returning(|x| Ok(x.len()));
+
+		mock.expect_flush()
+			.once()
+			.returning(|| Ok(()))
+			.in_sequence(&mut seq);
+
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		fixture
+			.write_str_field("hello", QuoteMode::AutoDetect)
+			.unwrap();
+		fixture
+			.write_str_field("world", QuoteMode::AutoDetect)
+			.unwrap();
+
+		let act = fixture.end_of_record(NewLineMode::Cr, true).unwrap();
+		assert_eq!(act, 2);
 	}
 
 	#[test]
