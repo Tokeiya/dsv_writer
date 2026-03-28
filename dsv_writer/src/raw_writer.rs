@@ -6,7 +6,11 @@ use std::collections::HashSet;
 use std::io::Write;
 
 pub type ArgumentResult<T> = Result<T, ArgumentError>;
-pub use common_errors::invalid_argument::{Error as ArgumentError, Information as ArgumentErrorInformation};
+use crate::NewLineMode;
+pub use common_errors::invalid_argument::{
+	Error as ArgumentError, Information as ArgumentErrorInformation,
+};
+
 #[derive(Debug)]
 pub struct RawWriter<W> {
 	writer: W,
@@ -19,10 +23,12 @@ pub struct RawWriter<W> {
 impl<W: Write> RawWriter<W> {
 	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
 		if delimiter == '"' {
-			Err(ArgumentError::InvalidArgument(ArgumentErrorInformation::new_both(
-				"delimiter".to_string(),
-				"\" is not allowed as delimiter".to_string(),
-			)))
+			Err(ArgumentError::InvalidArgument(
+				ArgumentErrorInformation::new_both(
+					"delimiter".to_string(),
+					"\" is not allowed as delimiter".to_string(),
+				),
+			))
 		} else {
 			Ok(RawWriter {
 				writer,
@@ -54,12 +60,17 @@ impl<W: Write> Encoder for RawWriter<W> {
 		Ok(self.cnt)
 	}
 
-	fn end_of_record(&mut self, should_flush: bool) -> EncoderResult<usize> {
+	fn end_of_record(&mut self, new_line: NewLineMode, should_flush: bool) -> EncoderResult<usize> {
 		if self.cnt > 0 {
 			self.buffer.pop();
 		}
 
-		self.buffer.push_str("\r\n");
+		match new_line {
+			NewLineMode::Lf => self.buffer.push_str("\n"),
+			NewLineMode::Cr => self.buffer.push_str("\r"),
+			NewLineMode::CrLf => self.buffer.push_str("\r\n"),
+		}
+
 		self.writer.write_all(self.buffer.as_bytes())?;
 		let c = self.cnt;
 		self.cnt = 0;
@@ -98,7 +109,7 @@ mod test {
 		writer
 			.write_str_field("world", QuoteMode::AutoDetect)
 			.unwrap();
-		writer.end_of_record(true).unwrap();
+		writer.end_of_record(NewLineMode::CrLf, true).unwrap();
 
 		dbg!(&vec);
 		let str = String::from_utf8(vec).unwrap();
@@ -177,7 +188,7 @@ mod test {
 			.write_str_field("world", QuoteMode::AutoDetect)
 			.unwrap();
 
-		let act = fixture.end_of_record(true).unwrap();
+		let act = fixture.end_of_record(NewLineMode::CrLf, true).unwrap();
 		assert_eq!(act, 2);
 	}
 
@@ -258,7 +269,7 @@ mod test {
 		assert_eq!(fixture.cnt(), cnt);
 		assert_eq!(fixture.cnt(), 2);
 
-		_ = fixture.end_of_record(false).unwrap();
+		_ = fixture.end_of_record(NewLineMode::CrLf, false).unwrap();
 		assert_eq!(fixture.cnt(), 0);
 	}
 }

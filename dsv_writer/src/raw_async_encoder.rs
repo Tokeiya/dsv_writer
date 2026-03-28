@@ -1,3 +1,4 @@
+use crate::new_line_mode::NewLineMode;
 use crate::quote_mode::QuoteMode;
 use futures::io::Result as IoResult;
 
@@ -7,8 +8,11 @@ pub trait RawAsyncEncode {
 		value: &str,
 		quote_mode: QuoteMode,
 	) -> impl Future<Output = IoResult<usize>> + Send;
-	fn end_of_record(&mut self, should_flush: bool)
-	-> impl Future<Output = IoResult<usize>> + Send;
+	fn end_of_record(
+		&mut self,
+		new_line: NewLineMode,
+		should_flush: bool,
+	) -> impl Future<Output = IoResult<usize>> + Send;
 
 	fn write_string_field(
 		&mut self,
@@ -85,7 +89,7 @@ mod tests {
 
 	impl MockWriter<Vec<u8>> {
 		pub async fn mock_end_of_record(&mut self) -> String {
-			self.end_of_record(true).await.unwrap();
+			self.end_of_record(NewLineMode::Lf, true).await.unwrap();
 			let s: String = String::from_utf8_lossy(&self.buff).into();
 			self.buff.clear();
 			s
@@ -120,8 +124,17 @@ mod tests {
 			Ok(scr.len())
 		}
 
-		async fn end_of_record(&mut self, should_flush: bool) -> IoResult<usize> {
-			self.buff.write_all(b"\r\n").await?;
+		async fn end_of_record(
+			&mut self,
+			new_line: NewLineMode,
+			should_flush: bool,
+		) -> IoResult<usize> {
+			match new_line {
+				NewLineMode::Cr => self.buff.write_all(b"\r").await?,
+				NewLineMode::Lf => self.buff.write_all(b"\n").await?,
+				NewLineMode::CrLf => self.buff.write_all(b"\r\n").await?,
+			}
+
 			let c = self.cnt;
 
 			if should_flush {

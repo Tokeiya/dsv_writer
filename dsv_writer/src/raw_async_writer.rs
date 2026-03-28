@@ -1,10 +1,12 @@
 use super::raw_async_encoder::RawAsyncEncode;
+use crate::NewLineMode;
 use crate::quote_mode::QuoteMode;
 use common_errors::invalid_argument::{Error as InvalidArgumentError, Information};
 use futures::io::Result as IoResult;
 use futures::{AsyncWrite, AsyncWriteExt};
 use std::borrow::Cow;
 use std::collections::HashSet;
+
 type ArgumentResult<T> = Result<T, common_errors::invalid_argument::Error>;
 
 pub struct RawAsyncWriter<W> {
@@ -55,8 +57,16 @@ impl<W: AsyncWrite + Unpin + Send> RawAsyncEncode for RawAsyncWriter<W> {
 		Ok(self.cnt)
 	}
 
-	async fn end_of_record(&mut self, should_flush: bool) -> IoResult<usize> {
-		self.writer.write_all(b"\r\n").await?;
+	async fn end_of_record(
+		&mut self,
+		new_line: NewLineMode,
+		should_flush: bool,
+	) -> IoResult<usize> {
+		match new_line {
+			NewLineMode::Lf => self.writer.write_all(b"\n").await?,
+			NewLineMode::Cr => self.writer.write_all(b"\r").await?,
+			NewLineMode::CrLf => self.writer.write_all(b"\r\n").await?,
+		}
 
 		if should_flush {
 			self.writer.flush().await?;
@@ -76,7 +86,7 @@ mod test {
 	use super::*;
 	use crate::quote_mode::QuoteMode::AutoDetect;
 	use futures::AsyncWriteExt;
-	
+
 	#[tokio::test]
 	async fn playground() {
 		async fn foo<W: AsyncWrite + std::marker::Unpin>(writer: &mut W) {
@@ -188,7 +198,10 @@ mod test {
 				fixture.write_str_field(s, *q).await.unwrap();
 			}
 
-			let act = fixture.end_of_record(true).await.unwrap();
+			let act = fixture
+				.end_of_record(NewLineMode::CrLf, true)
+				.await
+				.unwrap();
 			assert_eq!(binding, expected.as_bytes());
 			assert_eq!(act, input.len());
 		}
@@ -211,7 +224,7 @@ mod test {
 			.unwrap();
 		assert_eq!(fixture.cnt(), 1);
 
-		fixture.end_of_record(true).await.unwrap();
+		fixture.end_of_record(NewLineMode::Lf, true).await.unwrap();
 		assert_eq!(fixture.cnt(), 0);
 
 		fixture

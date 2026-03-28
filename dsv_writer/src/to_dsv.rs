@@ -36,9 +36,11 @@ where
 #[cfg(test)]
 mod test {
 	use super::*;
+	use crate::NewLineMode;
 	use crate::quote_mode::QuoteMode;
 	use std::error::Error as StdError;
 	use std::fmt::{Debug, Display, Formatter};
+
 	#[test]
 	fn playground() {
 		let i: u16 = u16::default();
@@ -87,7 +89,8 @@ mod test {
 
 		fn end_of_record(
 			&mut self,
-			_should_flush: bool,
+			_: NewLineMode,
+			_: bool,
 		) -> crate::raw_encoder_error::Result<usize> {
 			unreachable!()
 		}
