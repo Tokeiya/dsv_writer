@@ -1,13 +1,12 @@
 use super::raw_encoder_error::Result as EncoderResult;
 use crate::quote_mode::QuoteMode;
 use crate::raw_encoder::Encoder;
-use common_errors::invalid_argument::{Error as ArgumentError, Information};
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::io::Write;
 
-type ArgumentResult<T> = Result<T, ArgumentError>;
-
+pub type ArgumentResult<T> = Result<T, ArgumentError>;
+pub use common_errors::invalid_argument::{Error as ArgumentError, Information as ArgumentErrorInformation};
 #[derive(Debug)]
 pub struct RawWriter<W> {
 	writer: W,
@@ -20,7 +19,7 @@ pub struct RawWriter<W> {
 impl<W: Write> RawWriter<W> {
 	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
 		if delimiter == '"' {
-			Err(ArgumentError::InvalidArgument(Information::new_both(
+			Err(ArgumentError::InvalidArgument(ArgumentErrorInformation::new_both(
 				"delimiter".to_string(),
 				"\" is not allowed as delimiter".to_string(),
 			)))
