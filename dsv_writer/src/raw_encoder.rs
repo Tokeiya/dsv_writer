@@ -2,8 +2,6 @@ use super::raw_encoder_error::Result;
 use crate::quote_mode::QuoteMode;
 use std::borrow::Cow;
 
-pub type StrCow<'a> = Cow<'a, str>;
-
 pub trait Encoder {
 	fn write_str_field(&mut self, value: &str, quote_mode: QuoteMode) -> Result<usize>;
 	fn write_string_field(&mut self, value: String, quote_mode: QuoteMode) -> Result<usize> {
@@ -32,9 +30,11 @@ pub trait Encoder {
 #[cfg(test)]
 mod tests {
 	use crate::quote_mode::QuoteMode;
-	use crate::raw_encoder::{Encoder, StrCow};
+	use crate::raw_encoder::Encoder;
+	use std::borrow::Cow;
 	use std::collections::HashSet;
 	use std::sync::LazyLock;
+	type StrCow<'a> = Cow<'a, str>;
 
 	static DICT: LazyLock<HashSet<char>> = LazyLock::new(|| {
 		let mut set = HashSet::new();
