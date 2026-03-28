@@ -36,6 +36,7 @@ mod tests {
 	use std::borrow::Cow;
 	use std::collections::HashSet;
 	use std::sync::LazyLock;
+	type StrCow<'a> = Cow<'a, str>;
 
 	type StrCow<'a> = Cow<'a, str>;
 
