@@ -89,7 +89,7 @@ mod tests {
 
 	impl MockWriter<Vec<u8>> {
 		pub async fn mock_end_of_record(&mut self) -> String {
-			self.end_of_record(NewLineMode::Lf, true).await.unwrap();
+			self.end_of_record(NewLineMode::CrLf, true).await.unwrap();
 			let s: String = String::from_utf8_lossy(&self.buff).into();
 			self.buff.clear();
 			s
