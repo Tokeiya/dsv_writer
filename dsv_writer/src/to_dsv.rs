@@ -36,7 +36,6 @@ where
 #[cfg(test)]
 mod test {
 	use super::*;
-	use crate::NewLineMode;
 	use crate::quote_mode::QuoteMode;
 	use std::error::Error as StdError;
 	use std::fmt::{Debug, Display, Formatter};
@@ -87,11 +86,7 @@ mod test {
 			unreachable!()
 		}
 
-		fn end_of_record(
-			&mut self,
-			_: NewLineMode,
-			_: bool,
-		) -> crate::raw_encoder_error::Result<usize> {
+		fn end_of_record(&mut self, _: bool) -> crate::raw_encoder_error::Result<usize> {
 			unreachable!()
 		}
 

@@ -1,4 +1,3 @@
-mod new_line_mode;
 mod quote_mode;
 mod raw_async_encoder;
 mod raw_async_writer;
@@ -7,7 +6,6 @@ mod raw_encoder_error;
 mod raw_writer;
 mod to_dsv;
 
-pub use crate::new_line_mode::NewLineMode;
 pub use crate::quote_mode::QuoteMode;
 pub use crate::raw_async_encoder::RawAsyncEncode;
 pub use crate::raw_async_writer::RawAsyncWriter;

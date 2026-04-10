@@ -1,4 +1,3 @@
-use super::new_line_mode::NewLineMode;
 use super::raw_encoder_error::Result;
 use crate::quote_mode::QuoteMode;
 use std::borrow::Cow;
@@ -15,7 +14,7 @@ pub trait Encoder {
 	) -> Result<usize> {
 		self.write_str_field(value.to_string().as_str(), quote_mode)
 	}
-	fn end_of_record(&mut self, new_line: NewLineMode, should_flush: bool) -> Result<usize>;
+	fn end_of_record(&mut self, should_flush: bool) -> Result<usize>;
 	fn add_quote(&self, value: Cow<'_, str>) -> String {
 		let mut buff = String::new();
 
@@ -30,7 +29,6 @@ pub trait Encoder {
 
 #[cfg(test)]
 mod tests {
-	use crate::NewLineMode;
 	use crate::quote_mode::QuoteMode;
 	use crate::raw_encoder::Encoder;
 	use std::borrow::Cow;
@@ -74,11 +72,7 @@ mod tests {
 			Ok(self.buff.last().unwrap().len())
 		}
 
-		fn end_of_record(
-			&mut self,
-			_: NewLineMode,
-			_: bool,
-		) -> crate::raw_encoder_error::Result<usize> {
+		fn end_of_record(&mut self, _: bool) -> crate::raw_encoder_error::Result<usize> {
 			unreachable!()
 		}
 

@@ -1,5 +1,4 @@
 use super::raw_async_encoder::RawAsyncEncode;
-use crate::NewLineMode;
 use crate::quote_mode::QuoteMode;
 use common_errors::invalid_argument::{Error as InvalidArgumentError, Information};
 use futures::io::Result as IoResult;
@@ -57,16 +56,8 @@ impl<W: AsyncWrite + Unpin + Send> RawAsyncEncode for RawAsyncWriter<W> {
 		Ok(self.cnt)
 	}
 
-	async fn end_of_record(
-		&mut self,
-		new_line: NewLineMode,
-		should_flush: bool,
-	) -> IoResult<usize> {
-		match new_line {
-			NewLineMode::Lf => self.writer.write_all(b"\n").await?,
-			NewLineMode::Cr => self.writer.write_all(b"\r").await?,
-			NewLineMode::CrLf => self.writer.write_all(b"\r\n").await?,
-		}
+	async fn end_of_record(&mut self, should_flush: bool) -> IoResult<usize> {
+		self.writer.write_all(b"\r\n").await?;
 
 		if should_flush {
 			self.writer.flush().await?;
@@ -190,7 +181,7 @@ mod test {
 
 	#[tokio::test]
 	async fn end_of_record_test() {
-		async fn f(input: &[(&str, QuoteMode)], expected: &str, new_line: NewLineMode) {
+		async fn f(input: &[(&str, QuoteMode)], expected: &str) {
 			let mut binding = Vec::<u8>::new();
 			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',').unwrap();
 
@@ -198,7 +189,7 @@ mod test {
 				fixture.write_str_field(s, *q).await.unwrap();
 			}
 
-			let act = fixture.end_of_record(new_line, true).await.unwrap();
+			let act = fixture.end_of_record(true).await.unwrap();
 			assert_eq!(binding, expected.as_bytes());
 			assert_eq!(act, input.len());
 		}
@@ -206,21 +197,6 @@ mod test {
 		f(
 			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
 			"\"hello\",world\r\n",
-			NewLineMode::CrLf,
-		)
-		.await;
-
-		f(
-			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
-			"\"hello\",world\n",
-			NewLineMode::Lf,
-		)
-		.await;
-
-		f(
-			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
-			"\"hello\",world\r",
-			NewLineMode::Cr,
 		)
 		.await;
 	}
@@ -236,7 +212,7 @@ mod test {
 			.unwrap();
 		assert_eq!(fixture.cnt(), 1);
 
-		fixture.end_of_record(NewLineMode::Lf, true).await.unwrap();
+		fixture.end_of_record(true).await.unwrap();
 		assert_eq!(fixture.cnt(), 0);
 
 		fixture

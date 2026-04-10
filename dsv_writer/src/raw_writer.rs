@@ -6,7 +6,6 @@ use std::collections::HashSet;
 use std::io::Write;
 
 pub type ArgumentResult<T> = Result<T, ArgumentError>;
-use crate::NewLineMode;
 pub use common_errors::invalid_argument::{
 	Error as ArgumentError, Information as ArgumentErrorInformation,
 };
@@ -60,16 +59,12 @@ impl<W: Write> Encoder for RawWriter<W> {
 		Ok(self.cnt)
 	}
 
-	fn end_of_record(&mut self, new_line: NewLineMode, should_flush: bool) -> EncoderResult<usize> {
+	fn end_of_record(&mut self, should_flush: bool) -> EncoderResult<usize> {
 		if self.cnt > 0 {
 			self.buffer.pop();
 		}
 
-		match new_line {
-			NewLineMode::Lf => self.buffer.push_str("\n"),
-			NewLineMode::Cr => self.buffer.push_str("\r"),
-			NewLineMode::CrLf => self.buffer.push_str("\r\n"),
-		}
+		self.buffer.push_str("\r\n");
 
 		self.writer.write_all(self.buffer.as_bytes())?;
 		let c = self.cnt;
@@ -109,7 +104,7 @@ mod test {
 		writer
 			.write_str_field("world", QuoteMode::AutoDetect)
 			.unwrap();
-		writer.end_of_record(NewLineMode::CrLf, true).unwrap();
+		writer.end_of_record(true).unwrap();
 
 		dbg!(&vec);
 		let str = String::from_utf8(vec).unwrap();
@@ -188,59 +183,7 @@ mod test {
 			.write_str_field("world", QuoteMode::AutoDetect)
 			.unwrap();
 
-		let act = fixture.end_of_record(NewLineMode::CrLf, true).unwrap();
-		assert_eq!(act, 2);
-
-		let mut mock = MockWriter::new();
-		let mut seq = mockall::Sequence::new();
-
-		mock.expect_write()
-			.once()
-			.in_sequence(&mut seq)
-			.returning(|x| Ok(x.len()))
-			.with(str_eq("hello,world\n"))
-			.returning(|x| Ok(x.len()));
-
-		mock.expect_flush()
-			.once()
-			.returning(|| Ok(()))
-			.in_sequence(&mut seq);
-
-		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
-		fixture
-			.write_str_field("hello", QuoteMode::AutoDetect)
-			.unwrap();
-		fixture
-			.write_str_field("world", QuoteMode::AutoDetect)
-			.unwrap();
-
-		let act = fixture.end_of_record(NewLineMode::Lf, true).unwrap();
-		assert_eq!(act, 2);
-
-		let mut mock = MockWriter::new();
-		let mut seq = mockall::Sequence::new();
-
-		mock.expect_write()
-			.once()
-			.in_sequence(&mut seq)
-			.returning(|x| Ok(x.len()))
-			.with(str_eq("hello,world\r"))
-			.returning(|x| Ok(x.len()));
-
-		mock.expect_flush()
-			.once()
-			.returning(|| Ok(()))
-			.in_sequence(&mut seq);
-
-		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
-		fixture
-			.write_str_field("hello", QuoteMode::AutoDetect)
-			.unwrap();
-		fixture
-			.write_str_field("world", QuoteMode::AutoDetect)
-			.unwrap();
-
-		let act = fixture.end_of_record(NewLineMode::Cr, true).unwrap();
+		let act = fixture.end_of_record(true).unwrap();
 		assert_eq!(act, 2);
 	}
 
@@ -321,7 +264,7 @@ mod test {
 		assert_eq!(fixture.cnt(), cnt);
 		assert_eq!(fixture.cnt(), 2);
 
-		_ = fixture.end_of_record(NewLineMode::CrLf, false).unwrap();
+		_ = fixture.end_of_record(false).unwrap();
 		assert_eq!(fixture.cnt(), 0);
 	}
 }
