@@ -38,8 +38,6 @@ mod tests {
 	use std::sync::LazyLock;
 	type StrCow<'a> = Cow<'a, str>;
 
-	type StrCow<'a> = Cow<'a, str>;
-
 	static DICT: LazyLock<HashSet<char>> = LazyLock::new(|| {
 		let mut set = HashSet::new();
 		set.insert('"');
