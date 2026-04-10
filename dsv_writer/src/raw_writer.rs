@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::io::Write;
 
 use crate::new_line::NewLine;
-use crate::{RawWriterError, RawWriterResult};
+use crate::{DelimiterError, DelimiterResult};
 
 #[derive(Debug)]
 pub struct RawWriter<W> {
@@ -19,9 +19,9 @@ pub struct RawWriter<W> {
 }
 
 impl<W: Write> RawWriter<W> {
-	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> RawWriterResult<Self> {
+	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> DelimiterResult<Self> {
 		if delimiter == '"' {
-			Err(RawWriterError::InvalidDelimiter)
+			Err(DelimiterError::InvalidDelimiter)
 		} else {
 			Ok(RawWriter {
 				writer,
@@ -239,7 +239,7 @@ mod test {
 		let mock = MockWriter::new();
 		let fixture = RawWriter::<MockWriter>::try_new(mock, '\"', NewLine::CrLf);
 
-		assert!(matches!(fixture, Err(RawWriterError::InvalidDelimiter)));
+		assert!(matches!(fixture, Err(DelimiterError::InvalidDelimiter)));
 	}
 
 	#[test]

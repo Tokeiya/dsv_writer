@@ -1,7 +1,7 @@
 use super::raw_async_encoder::RawAsyncEncode;
 use crate::new_line::NewLine;
 use crate::quote_mode::QuoteMode;
-use crate::{RawWriterError, RawWriterResult};
+use crate::{DelimiterError, DelimiterResult};
 use futures::io::Result as IoResult;
 use futures::{AsyncWrite, AsyncWriteExt};
 use std::borrow::Cow;
@@ -15,9 +15,9 @@ pub struct RawAsyncWriter<W> {
 }
 
 impl<W> RawAsyncWriter<W> {
-	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> RawWriterResult<Self> {
+	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> DelimiterResult<Self> {
 		if delimiter == '"' {
-			return Err(RawWriterError::InvalidDelimiter);
+			return Err(DelimiterError::InvalidDelimiter);
 		}
 
 		Ok(Self {
@@ -104,7 +104,7 @@ mod test {
 		let fixture = RawAsyncWriter::try_new(&mut vec, '\"', NewLine::CrLf)
 			.err()
 			.unwrap();
-		assert!(matches!(fixture, RawWriterError::InvalidDelimiter));
+		assert!(matches!(fixture, DelimiterError::InvalidDelimiter));
 	}
 
 	#[test]
