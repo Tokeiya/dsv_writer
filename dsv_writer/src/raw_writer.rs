@@ -10,17 +10,25 @@ pub use common_errors::invalid_argument::{
 	Error as ArgumentError, Information as ArgumentErrorInformation,
 };
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum NewLine {
+	Cr,
+	Lf,
+	CrLf,
+}
+
 #[derive(Debug)]
 pub struct RawWriter<W> {
 	writer: W,
 	cnt: usize,
 	buffer: String,
 	delimiter: char,
+	new_line: NewLine,
 	escape_set: HashSet<char>,
 }
 
 impl<W: Write> RawWriter<W> {
-	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
+	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> ArgumentResult<Self> {
 		if delimiter == '"' {
 			Err(ArgumentError::InvalidArgument(
 				ArgumentErrorInformation::new_both(
@@ -34,6 +42,7 @@ impl<W: Write> RawWriter<W> {
 				cnt: 0,
 				buffer: String::new(),
 				delimiter,
+				new_line,
 				escape_set: HashSet::from(['"', '\n', '\r', delimiter]),
 			})
 		}
@@ -64,7 +73,11 @@ impl<W: Write> Encoder for RawWriter<W> {
 			self.buffer.pop();
 		}
 
-		self.buffer.push_str("\r\n");
+		match self.new_line {
+			NewLine::Cr => self.buffer.push('\r'),
+			NewLine::Lf => self.buffer.push('\n'),
+			NewLine::CrLf => self.buffer.push_str("\r\n"),
+		}
 
 		self.writer.write_all(self.buffer.as_bytes())?;
 		let c = self.cnt;
@@ -97,7 +110,7 @@ mod test {
 	fn playground() {
 		let mut vec = Vec::new();
 
-		let mut writer = RawWriter::try_new(&mut vec, ',').unwrap();
+		let mut writer = RawWriter::try_new(&mut vec, ',', NewLine::CrLf).unwrap();
 		writer
 			.write_str_field("hello", QuoteMode::AutoDetect)
 			.unwrap();
@@ -106,9 +119,7 @@ mod test {
 			.unwrap();
 		writer.end_of_record(true).unwrap();
 
-		dbg!(&vec);
 		let str = String::from_utf8(vec).unwrap();
-		dbg!(&str);
 	}
 
 	mock! {
@@ -175,7 +186,7 @@ mod test {
 			.returning(|| Ok(()))
 			.in_sequence(&mut seq);
 
-		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',', NewLine::CrLf).unwrap();
 		fixture
 			.write_str_field("hello", QuoteMode::AutoDetect)
 			.unwrap();
@@ -194,10 +205,45 @@ mod test {
 			.with(predicate::always())
 			.returning(|x| Ok(x.len()));
 
-		let fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		let fixture = RawWriter::<MockWriter>::try_new(mock, ',', NewLine::CrLf).unwrap();
 		assert_eq!(fixture.cnt, 0);
 		assert_eq!(fixture.buffer, "");
 		assert_eq!(fixture.delimiter, ',');
+		assert_eq!(fixture.new_line, NewLine::CrLf);
+
+		assert_eq!(fixture.escape_set.len(), 4);
+		assert!(fixture.escape_set.contains(&'"'));
+		assert!(fixture.escape_set.contains(&'\n'));
+		assert!(fixture.escape_set.contains(&'\r'));
+		assert!(fixture.escape_set.contains(&','));
+
+		let mut mock = MockWriter::new();
+		mock.expect_write()
+			.with(predicate::always())
+			.returning(|x| Ok(x.len()));
+
+		let fixture = RawWriter::<MockWriter>::try_new(mock, ',', NewLine::Cr).unwrap();
+		assert_eq!(fixture.cnt, 0);
+		assert_eq!(fixture.buffer, "");
+		assert_eq!(fixture.delimiter, ',');
+		assert_eq!(fixture.new_line, NewLine::Cr);
+
+		assert_eq!(fixture.escape_set.len(), 4);
+		assert!(fixture.escape_set.contains(&'"'));
+		assert!(fixture.escape_set.contains(&'\n'));
+		assert!(fixture.escape_set.contains(&'\r'));
+		assert!(fixture.escape_set.contains(&','));
+
+		let mut mock = MockWriter::new();
+		mock.expect_write()
+			.with(predicate::always())
+			.returning(|x| Ok(x.len()));
+
+		let fixture = RawWriter::<MockWriter>::try_new(mock, ',', NewLine::Lf).unwrap();
+		assert_eq!(fixture.cnt, 0);
+		assert_eq!(fixture.buffer, "");
+		assert_eq!(fixture.delimiter, ',');
+		assert_eq!(fixture.new_line, NewLine::Lf);
 
 		assert_eq!(fixture.escape_set.len(), 4);
 		assert!(fixture.escape_set.contains(&'"'));
@@ -206,7 +252,7 @@ mod test {
 		assert!(fixture.escape_set.contains(&','));
 
 		let mock = MockWriter::new();
-		let fixture = RawWriter::<MockWriter>::try_new(mock, '\"');
+		let fixture = RawWriter::<MockWriter>::try_new(mock, '\"', NewLine::CrLf);
 
 		assert!(matches!(fixture, Err(ArgumentError::InvalidArgument(_))));
 	}
@@ -214,7 +260,7 @@ mod test {
 	#[test]
 	fn should_quoting_test() {
 		let mock = MockWriter::new();
-		let fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		let fixture = RawWriter::<MockWriter>::try_new(mock, ',', NewLine::CrLf).unwrap();
 		assert!(!fixture.should_quoting("hello"));
 		assert!(fixture.should_quoting("\"hello\""));
 		assert!(fixture.should_quoting("hello,world"));
@@ -227,7 +273,7 @@ mod test {
 	fn write_str_field_test() {
 		let mock = MockWriter::new();
 
-		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',', NewLine::CrLf).unwrap();
 		let cnt = fixture
 			.write_str_field("hel,lo", QuoteMode::AutoDetect)
 			.unwrap();
@@ -249,7 +295,7 @@ mod test {
 			.with(predicate::always())
 			.returning(|x| Ok(x.len()));
 
-		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',').unwrap();
+		let mut fixture = RawWriter::<MockWriter>::try_new(mock, ',', NewLine::CrLf).unwrap();
 		assert_eq!(fixture.cnt(), 0);
 
 		let cnt = fixture
@@ -266,5 +312,26 @@ mod test {
 
 		_ = fixture.end_of_record(false).unwrap();
 		assert_eq!(fixture.cnt(), 0);
+	}
+
+	#[test]
+	fn end_of_record() {
+		let mut buff = Vec::<u8>::new();
+
+		let mut fixture = RawWriter::try_new(buff, ',', NewLine::CrLf).unwrap();
+		fixture.end_of_record(true).unwrap();
+		assert_eq!(String::from_utf8(fixture.writer).unwrap(), "\r\n");
+
+		let mut buff = Vec::<u8>::new();
+
+		let mut fixture = RawWriter::try_new(buff, ',', NewLine::Cr).unwrap();
+		fixture.end_of_record(true).unwrap();
+		assert_eq!(String::from_utf8(fixture.writer).unwrap(), "\r");
+
+		let mut buff = Vec::<u8>::new();
+
+		let mut fixture = RawWriter::try_new(buff, ',', NewLine::Lf).unwrap();
+		fixture.end_of_record(true).unwrap();
+		assert_eq!(String::from_utf8(fixture.writer).unwrap(), "\n");
 	}
 }
