@@ -1,4 +1,5 @@
 use super::raw_async_encoder::RawAsyncEncode;
+use crate::new_line::NewLine;
 use crate::quote_mode::QuoteMode;
 use common_errors::invalid_argument::{Error as InvalidArgumentError, Information};
 use futures::io::Result as IoResult;
@@ -12,11 +13,12 @@ pub struct RawAsyncWriter<W> {
 	writer: W,
 	set: HashSet<char>,
 	cnt: usize,
+	new_line: NewLine,
 	delimiter: Vec<u8>,
 }
 
 impl<W> RawAsyncWriter<W> {
-	pub fn try_new(writer: W, delimiter: char) -> ArgumentResult<Self> {
+	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> ArgumentResult<Self> {
 		if delimiter == '"' {
 			let info = Information::new_both(
 				"delimiter".to_string(),
@@ -29,6 +31,7 @@ impl<W> RawAsyncWriter<W> {
 			writer,
 			set: [delimiter, '\n', '\r', '"'].iter().copied().collect(),
 			cnt: 0,
+			new_line,
 			delimiter: delimiter.to_string().into(),
 		})
 	}
@@ -57,7 +60,11 @@ impl<W: AsyncWrite + Unpin + Send> RawAsyncEncode for RawAsyncWriter<W> {
 	}
 
 	async fn end_of_record(&mut self, should_flush: bool) -> IoResult<usize> {
-		self.writer.write_all(b"\r\n").await?;
+		match self.new_line {
+			NewLine::Cr => self.writer.write_all(b"\r").await?,
+			NewLine::Lf => self.writer.write_all(b"\n").await?,
+			NewLine::CrLf => self.writer.write_all(b"\r\n").await?,
+		}
 
 		if should_flush {
 			self.writer.flush().await?;
@@ -92,7 +99,7 @@ mod test {
 	#[tokio::test]
 	async fn try_new_test() {
 		let mut vec = Vec::<u8>::new();
-		let fixture = RawAsyncWriter::try_new(&mut vec, ',').unwrap();
+		let fixture = RawAsyncWriter::try_new(&mut vec, ',', NewLine::CrLf).unwrap();
 		assert_eq!(fixture.cnt, 0);
 		assert_eq!(fixture.set.len(), 4);
 
@@ -101,7 +108,9 @@ mod test {
 		assert!(fixture.set.contains(&'\r'));
 		assert!(fixture.set.contains(&','));
 
-		let fixture = RawAsyncWriter::try_new(&mut vec, '\"').err().unwrap();
+		let fixture = RawAsyncWriter::try_new(&mut vec, '\"', NewLine::CrLf)
+			.err()
+			.unwrap();
 		assert!(matches!(
 			fixture,
 			common_errors::invalid_argument::Error::InvalidArgument(_)
@@ -111,7 +120,7 @@ mod test {
 	#[test]
 	fn should_quoting_test() {
 		let mut binding = Vec::<u8>::new();
-		let fixture = RawAsyncWriter::try_new(&mut binding, ',').unwrap();
+		let fixture = RawAsyncWriter::try_new(&mut binding, ',', NewLine::CrLf).unwrap();
 		assert!(!fixture.should_quoting("hello"));
 		assert!(fixture.should_quoting("hel\"lo"));
 		assert!(fixture.should_quoting("hello,world"));
@@ -124,7 +133,7 @@ mod test {
 	async fn write_str_field_test() {
 		async fn f(quote_mode: QuoteMode, input: &str, expected: &str) {
 			let mut binding = Vec::<u8>::new();
-			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',').unwrap();
+			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',', NewLine::CrLf).unwrap();
 
 			fixture.write_str_field(input, quote_mode).await.unwrap();
 
@@ -140,7 +149,7 @@ mod test {
 
 		async fn g(quote_mode: QuoteMode, input: &[&str], expected: &str) {
 			let mut binding = Vec::<u8>::new();
-			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',').unwrap();
+			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',', NewLine::CrLf).unwrap();
 
 			for s in input {
 				fixture.write_str_field(s, quote_mode).await.unwrap();
@@ -180,10 +189,11 @@ mod test {
 	}
 
 	#[tokio::test]
-	async fn end_of_record_test() {
+	async fn end_of_record_crlf_test() {
+		//noinspection DuplicatedCode
 		async fn f(input: &[(&str, QuoteMode)], expected: &str) {
 			let mut binding = Vec::<u8>::new();
-			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',').unwrap();
+			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',', NewLine::CrLf).unwrap();
 
 			for (s, q) in input {
 				fixture.write_str_field(s, *q).await.unwrap();
@@ -202,9 +212,55 @@ mod test {
 	}
 
 	#[tokio::test]
+	async fn end_of_record_cr_test() {
+		//noinspection DuplicatedCode
+		async fn f(input: &[(&str, QuoteMode)], expected: &str) {
+			let mut binding = Vec::<u8>::new();
+			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',', NewLine::Cr).unwrap();
+
+			for (s, q) in input {
+				fixture.write_str_field(s, *q).await.unwrap();
+			}
+
+			let act = fixture.end_of_record(true).await.unwrap();
+			assert_eq!(binding, expected.as_bytes());
+			assert_eq!(act, input.len());
+		}
+
+		f(
+			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
+			"\"hello\",world\r",
+		)
+		.await;
+	}
+
+	#[tokio::test]
+	async fn end_of_record_lf_test() {
+		//noinspection DuplicatedCode
+		async fn f(input: &[(&str, QuoteMode)], expected: &str) {
+			let mut binding = Vec::<u8>::new();
+			let mut fixture = RawAsyncWriter::try_new(&mut binding, ',', NewLine::Lf).unwrap();
+
+			for (s, q) in input {
+				fixture.write_str_field(s, *q).await.unwrap();
+			}
+
+			let act = fixture.end_of_record(true).await.unwrap();
+			assert_eq!(binding, expected.as_bytes());
+			assert_eq!(act, input.len());
+		}
+
+		f(
+			&[("hello", QuoteMode::Quoted), ("world", AutoDetect)],
+			"\"hello\",world\n",
+		)
+		.await;
+	}
+
+	#[tokio::test]
 	async fn cnt_test() {
 		let mut buffer = Vec::<u8>::new();
-		let mut fixture = RawAsyncWriter::try_new(&mut buffer, ',').unwrap();
+		let mut fixture = RawAsyncWriter::try_new(&mut buffer, ',', NewLine::CrLf).unwrap();
 		assert_eq!(fixture.cnt(), 0);
 		fixture
 			.write_str_field("hello", QuoteMode::Quoted)

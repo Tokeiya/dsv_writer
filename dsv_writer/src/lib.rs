@@ -1,3 +1,4 @@
+mod new_line;
 mod quote_mode;
 mod raw_async_encoder;
 mod raw_async_writer;

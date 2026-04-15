@@ -6,16 +6,10 @@ use std::collections::HashSet;
 use std::io::Write;
 
 pub type ArgumentResult<T> = Result<T, ArgumentError>;
+use crate::new_line::NewLine;
 pub use common_errors::invalid_argument::{
 	Error as ArgumentError, Information as ArgumentErrorInformation,
 };
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum NewLine {
-	Cr,
-	Lf,
-	CrLf,
-}
 
 #[derive(Debug)]
 pub struct RawWriter<W> {
@@ -119,7 +113,7 @@ mod test {
 			.unwrap();
 		writer.end_of_record(true).unwrap();
 
-		let str = String::from_utf8(vec).unwrap();
+		_ = String::from_utf8(vec).unwrap();
 	}
 
 	mock! {
@@ -316,19 +310,19 @@ mod test {
 
 	#[test]
 	fn end_of_record() {
-		let mut buff = Vec::<u8>::new();
+		let buff = Vec::<u8>::new();
 
 		let mut fixture = RawWriter::try_new(buff, ',', NewLine::CrLf).unwrap();
 		fixture.end_of_record(true).unwrap();
 		assert_eq!(String::from_utf8(fixture.writer).unwrap(), "\r\n");
 
-		let mut buff = Vec::<u8>::new();
+		let buff = Vec::<u8>::new();
 
 		let mut fixture = RawWriter::try_new(buff, ',', NewLine::Cr).unwrap();
 		fixture.end_of_record(true).unwrap();
 		assert_eq!(String::from_utf8(fixture.writer).unwrap(), "\r");
 
-		let mut buff = Vec::<u8>::new();
+		let buff = Vec::<u8>::new();
 
 		let mut fixture = RawWriter::try_new(buff, ',', NewLine::Lf).unwrap();
 		fixture.end_of_record(true).unwrap();
