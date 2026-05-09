@@ -7,6 +7,7 @@ mod raw_encoder_error;
 mod raw_writer;
 mod to_dsv;
 
+pub use crate::new_line::NewLine;
 pub use crate::quote_mode::QuoteMode;
 pub use crate::raw_async_encoder::RawAsyncEncode;
 pub use crate::raw_async_writer::RawAsyncWriter;
