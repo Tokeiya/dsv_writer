@@ -5,24 +5,28 @@ use std::result::Result as StdResult;
 use thiserror::Error as ThisError;
 
 #[derive(Debug, ThisError)]
-pub enum Error<E: StdError + 'static> {
+pub enum ToDsvError<E: StdError + 'static> {
 	#[error(transparent)]
 	RawEnc(#[from] RawEncoderError),
 	#[error(transparent)]
 	Backend(E),
 }
 
-pub type Result<T, E> = StdResult<T, Error<E>>;
+pub type ToDsvResult<T, E> = StdResult<T, ToDsvError<E>>;
 
 pub trait ToOptionedDsv {
 	type Opt;
-	type Error:StdError;
-	fn to_opt_dsv<T: Encoder>(&self, option: &Self::Opt, writer: &mut T) -> Result<(), Self::Error>;
+	type Error: StdError;
+	fn to_opt_dsv<T: Encoder>(
+		&self,
+		option: &Self::Opt,
+		writer: &mut T,
+	) -> ToDsvResult<(), Self::Error>;
 }
 
 pub trait ToDsv {
-	type Error:StdError;
-	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> Result<(), Self::Error>;
+	type Error: StdError;
+	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> ToDsvResult<(), Self::Error>;
 }
 
 impl<X> ToDsv for X
@@ -32,8 +36,8 @@ where
 	X::Error: StdError + 'static,
 {
 	type Error = X::Error;
-	
-	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> Result<(), Self::Error> {
+
+	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> ToDsvResult<(), Self::Error> {
 		let option = X::Opt::default();
 		self.to_opt_dsv(&option, writer)
 	}
@@ -70,13 +74,13 @@ mod test {
 
 	impl ToOptionedDsv for DummyTarget {
 		type Opt = u16;
-		type Error =DummyErr;
+		type Error = DummyErr;
 
 		fn to_opt_dsv<T: Encoder>(
 			&self,
 			option: &Self::Opt,
 			_writer: &mut T,
-		) -> Result<(), DummyErr> {
+		) -> ToDsvResult<(), DummyErr> {
 			assert_eq!(*option, 0);
 			Ok(())
 		}

@@ -16,4 +16,4 @@ pub use crate::raw_async_writer::RawAsyncWriter;
 pub use crate::raw_encoder::Encoder;
 pub use crate::raw_encoder_error::{Error, Result};
 pub use crate::raw_writer::RawWriter;
-pub use crate::to_dsv::{Error as ToDsvError, Result as ToDsvResult, ToDsv};
+pub use crate::to_dsv::{ToDsv, ToDsvError, ToDsvResult};
