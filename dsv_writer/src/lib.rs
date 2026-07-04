@@ -1,3 +1,4 @@
+mod delimiter_error;
 mod new_line;
 mod quote_mode;
 mod raw_async_encoder;
@@ -7,11 +8,12 @@ mod raw_encoder_error;
 mod raw_writer;
 mod to_dsv;
 
+pub use crate::delimiter_error::{Error as RawWriterError, Result as RawWriterResult};
 pub use crate::new_line::NewLine;
 pub use crate::quote_mode::QuoteMode;
 pub use crate::raw_async_encoder::RawAsyncEncode;
 pub use crate::raw_async_writer::RawAsyncWriter;
 pub use crate::raw_encoder::Encoder;
 pub use crate::raw_encoder_error::{Error, Result};
-pub use crate::raw_writer::{ArgumentError, ArgumentErrorInformation, ArgumentResult, RawWriter};
+pub use crate::raw_writer::RawWriter;
 pub use crate::to_dsv::{Error as ToDsvError, Result as ToDsvResult, ToDsv};

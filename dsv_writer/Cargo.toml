@@ -1,6 +1,6 @@
 [package]
 name = "dsv_writer"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2024"
 
 [dev-dependencies]
@@ -11,6 +11,6 @@ tokio = { version = "*", features = ["test-util", "macros", "rt"] }
 [dependencies]
 thiserror = "*"
 predicates-core = "1.0.9"
-common_errors = { git = "https://github.com/Tokeiya/common_errors", branch = "master" }
+#common_errors = { git = "https://github.com/Tokeiya/common_errors", branch = "master" }
 futures = "*"
 

@@ -1,14 +1,11 @@
 use super::raw_async_encoder::RawAsyncEncode;
 use crate::new_line::NewLine;
 use crate::quote_mode::QuoteMode;
-use common_errors::invalid_argument::{Error as InvalidArgumentError, Information};
+use crate::{RawWriterError, RawWriterResult};
 use futures::io::Result as IoResult;
 use futures::{AsyncWrite, AsyncWriteExt};
 use std::borrow::Cow;
 use std::collections::HashSet;
-
-type ArgumentResult<T> = Result<T, common_errors::invalid_argument::Error>;
-
 pub struct RawAsyncWriter<W> {
 	writer: W,
 	set: HashSet<char>,
@@ -18,13 +15,9 @@ pub struct RawAsyncWriter<W> {
 }
 
 impl<W> RawAsyncWriter<W> {
-	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> ArgumentResult<Self> {
+	pub fn try_new(writer: W, delimiter: char, new_line: NewLine) -> RawWriterResult<Self> {
 		if delimiter == '"' {
-			let info = Information::new_both(
-				"delimiter".to_string(),
-				"double quote cannot be used as delimiter".to_string(),
-			);
-			return Err(InvalidArgumentError::InvalidArgument(info));
+			return Err(RawWriterError::InvalidDelimiter);
 		}
 
 		Ok(Self {
@@ -111,10 +104,7 @@ mod test {
 		let fixture = RawAsyncWriter::try_new(&mut vec, '\"', NewLine::CrLf)
 			.err()
 			.unwrap();
-		assert!(matches!(
-			fixture,
-			common_errors::invalid_argument::Error::InvalidArgument(_)
-		));
+		assert!(matches!(fixture, RawWriterError::InvalidDelimiter));
 	}
 
 	#[test]
