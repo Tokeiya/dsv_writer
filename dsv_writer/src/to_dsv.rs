@@ -14,22 +14,28 @@ pub enum Error<E: StdError + 'static> {
 
 pub type Result<T, E> = StdResult<T, Error<E>>;
 
-pub trait ToOptionedDsv<E: StdError> {
+pub trait ToOptionedDsv {
 	type Opt;
-	fn to_opt_dsv<T: Encoder>(&self, option: &Self::Opt, writer: &mut T) -> Result<(), E>;
+	type Error:StdError;
+	fn to_opt_dsv<T: Encoder>(&self, option: &Self::Opt, writer: &mut T) -> Result<(), Self::Error>;
 }
 
-pub trait ToDsv<E: StdError> {
-	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> Result<(), E>;
+pub trait ToDsv {
+	type Error:StdError;
+	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> Result<(), Self::Error>;
 }
 
-impl<E, O, X: ToOptionedDsv<E, Opt = O>> ToDsv<E> for X
+impl<X> ToDsv for X
 where
-	E: StdError,
-	O: Default,
+	X: ToOptionedDsv,
+	X::Opt: Default,
+	X::Error: StdError + 'static,
 {
-	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> Result<(), E> {
-		self.to_opt_dsv(&O::default(), writer)
+	type Error = X::Error;
+	
+	fn to_dsv<T: Encoder>(&self, writer: &mut T) -> Result<(), Self::Error> {
+		let option = X::Opt::default();
+		self.to_opt_dsv(&option, writer)
 	}
 }
 
@@ -62,8 +68,9 @@ mod test {
 
 	struct DummyTarget;
 
-	impl ToOptionedDsv<DummyErr> for DummyTarget {
+	impl ToOptionedDsv for DummyTarget {
 		type Opt = u16;
+		type Error =DummyErr;
 
 		fn to_opt_dsv<T: Encoder>(
 			&self,
@@ -101,6 +108,6 @@ mod test {
 	fn to_dsv_test() {
 		let target = DummyTarget;
 		let mut enc = DummyEnc;
-		ToDsv::<DummyErr>::to_dsv(&target, &mut enc).unwrap();
+		ToDsv::to_dsv(&target, &mut enc).unwrap();
 	}
 }
