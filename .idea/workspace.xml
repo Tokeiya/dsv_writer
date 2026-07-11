@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml">
+      <package file="$PROJECT_DIR$/dsv_writer">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/playground">
+        <feature name="default" enabled="true" />
+      </package>
+    </cargoProject>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="2b10c639-3362-482b-9eda-6c84160894d6" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/mnt/wsl/repo/dsv_writer" value="3GANwzIo4sYQe5rs7rrUQ1tpw0M" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="32" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:test" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="RnO7WbRg" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.0011217757373019" />
+      <entry key="MS500" value="1.2570284566640166" />
+      <entry key="S2" value="1.7120250977985358" />
+      <entry key="S5" value="1.8729675911337629" />
+      <entry key="S10" value="1.9343273468831805" />
+      <entry key="S30" value="1.977612262799191" />
+      <entry key="S60" value="1.9930425997302796" />
+      <entry key="M2" value="2.4469167457659884" />
+      <entry key="M5" value="10.611785445804802" />
+      <entry key="M10" value="25.787571839012564" />
+      <entry key="M15" value="35.51766558342335" />
+      <entry key="M30" value="49.33377238763097" />
+      <entry key="H1" value="58.29827896283651" />
+      <entry key="H2" value="63.411929477087746" />
+      <entry key="H4" value="66.14394783950424" />
+      <entry key="D1" value="68.51513710578747" />
+      <entry key="W1" value="68.93051382315089" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="2.6441038559206384E-17" />
+      <entry key="MS500" value="5.174572409192846E-4" />
+      <entry key="S2" value="0.30376702713866544" />
+      <entry key="S5" value="1.5111038977964093" />
+      <entry key="S10" value="2.7119817342454815" />
+      <entry key="S30" value="4.0654418014567435" />
+      <entry key="S60" value="4.512005421992525" />
+      <entry key="M2" value="5.190811806833383" />
+      <entry key="M5" value="12.716617148282005" />
+      <entry key="M10" value="26.297374971254428" />
+      <entry key="M15" value="34.99308262007714" />
+      <entry key="M30" value="47.356768547045256" />
+      <entry key="H1" value="55.392414403551605" />
+      <entry key="H2" value="59.98124819201737" />
+      <entry key="H4" value="62.43438095164233" />
+      <entry key="D1" value="64.56436302892037" />
+      <entry key="W1" value="64.93756643459989" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.16489027620306904" />
+      <entry key="MS500" value="0.9520598652192125" />
+      <entry key="S2" value="1.8132045433563007" />
+      <entry key="S5" value="3.1052244984411352" />
+      <entry key="S10" value="4.407462796896964" />
+      <entry key="S30" value="5.925967613959755" />
+      <entry key="S60" value="6.440284896058243" />
+      <entry key="M2" value="7.598233999740778" />
+      <entry key="M5" value="23.26944350402298" />
+      <entry key="M10" value="52.013737144794646" />
+      <entry key="M15" value="70.44506368893246" />
+      <entry key="M30" value="96.64461105848045" />
+      <entry key="H1" value="113.66344450259301" />
+      <entry key="H2" value="123.37832584145094" />
+      <entry key="H4" value="128.57057425408172" />
+      <entry key="D1" value="133.0781601083786" />
+      <entry key="W1" value="133.86788763324418" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3GANwzIo4sYQe5rs7rrUQ1tpw0M" />
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="modeId" value="Agent" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_id" />
+            <option name="modelValue" value="auto" />
+          </model>
+        </option>
+        <option name="targetType" value="BACKGROUND" />
+        <option name="worktreeMode" value="WORKSPACE" />
+      </template>
+    </option>
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Cargo.Test raw_writer::test.executor": "Coverage",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "copilot.chat.legacySessionMetadata.migrated": "true",
+    "git-widget-placeholder": "master",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/mnt/wsl/repo/document_sorter/rust/Cargo.toml",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.first.attach.projects": "true",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
+  }
+}]]></component>
+  <component name="RunManager" selected="Cargo.Test raw_writer::test">
+    <configuration name="Run playground" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package playground --bin playground" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test dsv_writer" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="buildProfileId" value="test" />
+      <option name="command" value="test --workspace" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test raw_writer::test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package dsv_writer --lib -- raw_writer::test" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test raw_writer::test" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2b10c639-3362-482b-9eda-6c84160894d6" name="Changes" comment="" />
+      <created>1783410659652</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1783410659652</updated>
+      <workItem from="1783410661013" duration="72000" />
+      <workItem from="1783411340055" duration="57000" />
+      <workItem from="1783411555035" duration="456000" />
+      <workItem from="1783412487854" duration="2022000" />
+      <workItem from="1783507308165" duration="33000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/dsv_writer$Test_raw_writer__test.info" NAME="Test raw_writer::test Coverage Results" MODIFIED="1783411998754" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="RsCoverageRunner" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" CONTEXT_FILE_PATH="$PROJECT_DIR$" />
+  </component>
+</project>
