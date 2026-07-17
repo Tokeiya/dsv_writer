@@ -1,15 +1,15 @@
 [package]
 name = "dsv_writer"
-version = "0.14.0"
+version = "0.12.1"
 edition = "2024"
 
 [dev-dependencies]
 mockall = "*"
 tokio = { version = "*", features = ["test-util", "macros", "rt"] }
+predicates-core = "*"
 
 
 [dependencies]
 thiserror = "*"
-predicates-core = "1.0.9"
 futures = "*"
 
